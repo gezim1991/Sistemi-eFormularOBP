@@ -176,14 +176,15 @@ export function AppShell({
                 active = pathname === item.to || pathname.startsWith(item.to + "/");
               }
               const isAllForms = item.to === "/forms" && item.exact && !item.search;
+              const isObpPanel = item.to === "/opb" && item.exact && user?.role === "opb";
               const allFormsBadgeCount = user?.role === "opb" ? opbFreshCount : unseenCount;
               const badge = isAllForms
-                ? allFormsBadgeCount > 0
-                  ? allFormsBadgeCount
-                  : undefined
-                : item.to === "/forms" && (item.exact || item.search)
-                  ? countFor(itemStatus)
-                  : undefined;
+                ? allFormsBadgeCount > 0 ? allFormsBadgeCount : undefined
+                : isObpPanel
+                  ? opbFreshCount > 0 ? opbFreshCount : undefined
+                  : item.to === "/forms" && (item.exact || item.search)
+                    ? countFor(itemStatus)
+                    : undefined;
               const showTooltip = isAllForms && allFormsBadgeCount > 0 && !collapsedNav;
               const link = (
                 <Link
@@ -192,7 +193,7 @@ export function AppShell({
                   search={item.search ? item.search : undefined}
                   title={collapsedNav ? item.label : undefined}
                   data-obp-target={itemStatus === "submitted_to_opb" ? "" : undefined}
-                  data-nav-key={isAllForms ? "forms-all" : undefined}
+                  data-nav-key={isAllForms ? "forms-all" : isObpPanel ? "opb-panel" : undefined}
                   onClick={() => {
                     if (isAllForms) {
                       setAllFormsTooltipOpen(false);
@@ -200,6 +201,8 @@ export function AppShell({
                         window.sessionStorage.setItem("lov.forms.playIntro.v1", "1");
                         window.dispatchEvent(new Event("lov:forms-intro-requested"));
                       }
+                    } else if (isObpPanel && typeof window !== "undefined") {
+                      window.dispatchEvent(new Event("lov:opb-panel-requested"));
                     }
                   }}
                   className={cn(

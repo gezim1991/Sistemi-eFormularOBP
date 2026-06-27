@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Building2,
@@ -18,6 +18,12 @@ import { Button } from "@/components/ui/button";
 import { useForms } from "@/lib/forms-store";
 import type { FormRecord } from "@/lib/forms-types";
 import { formsApi } from "@/lib/api/forms";
+import { getOpbFreshCount } from "@/features/OBP/opbActivity";
+
+const INTRO_FLY_MS = 1700;
+const INTRO_STAGGER_MS = 110;
+const INTRO_MAX_ICONS = 6;
+const INTRO_ROW_DELAY_MS = 55;
 
 const TABS = [
   { value: "all", label: "Të gjithë" },
@@ -43,6 +49,62 @@ export function ObpPanelPage() {
   const { forms, refresh } = useForms();
   const [tab, setTab] = useState<TabValue>("all");
   const [q, setQ] = useState("");
+
+  // Fly animation
+  const listCardRef = useRef<HTMLDivElement | null>(null);
+  const [introPlaying, setIntroPlaying] = useState(false);
+  const [introVectors, setIntroVectors] = useState<
+    { id: number; fromX: number; fromY: number; toX: number; toY: number; delay: number }[]
+  >([]);
+  const [rowsKey, setRowsKey] = useState(0);
+  const [rowsAnimate, setRowsAnimate] = useState(false);
+  const [rowsBaseDelay, setRowsBaseDelay] = useState(0);
+
+  const playIntroAnimation = useCallback(() => {
+    const freshCount = getOpbFreshCount(forms);
+    const totalCount = Math.min(
+      forms.filter((f) => f.status === "submitted_to_opb").length,
+      INTRO_MAX_ICONS,
+    );
+    const count = freshCount > 0 ? Math.min(freshCount, INTRO_MAX_ICONS) : totalCount;
+    if (count === 0) return;
+    const sourceEl = document.querySelector<HTMLElement>('[data-nav-key="opb-panel"]');
+    const targetEl = listCardRef.current;
+    if (!targetEl) return;
+    const targetRect = targetEl.getBoundingClientRect();
+    const targetX = targetRect.left + targetRect.width / 2;
+    const targetY = targetRect.top + Math.min(targetRect.height / 2, 220);
+    const sourceRect = sourceEl?.getBoundingClientRect();
+    const sourceX = sourceRect ? sourceRect.left + sourceRect.width / 2 : targetX - 320;
+    const sourceY = sourceRect ? sourceRect.top + sourceRect.height / 2 : targetY;
+    const vectors = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      fromX: sourceX,
+      fromY: sourceY,
+      toX: targetX + (Math.random() - 0.5) * 80,
+      toY: targetY + (Math.random() - 0.5) * 120,
+      delay: i * INTRO_STAGGER_MS,
+    }));
+    setIntroVectors(vectors);
+    setIntroPlaying(true);
+    setRowsKey((k) => k + 1);
+    setRowsBaseDelay(INTRO_FLY_MS);
+    setRowsAnimate(true);
+    const totalMs = INTRO_FLY_MS + (count - 1) * INTRO_STAGGER_MS;
+    window.setTimeout(() => setIntroPlaying(false), totalMs);
+  }, [forms]);
+
+  useEffect(() => {
+    const freshCount = getOpbFreshCount(forms);
+    if (freshCount > 0) playIntroAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const handler = () => playIntroAnimation();
+    window.addEventListener("lov:opb-panel-requested", handler);
+    return () => window.removeEventListener("lov:opb-panel-requested", handler);
+  }, [playIntroAnimation]);
 
   // Use server-side activity flags from the API (isNewForMe, opbViewedAt, opbDownloadedAt)
   const opbForms = useMemo(
@@ -149,6 +211,28 @@ export function ObpPanelPage() {
   ];
 
   return (
+    <>
+      {introPlaying && introVectors.length > 0 && (
+        <div aria-hidden className="pointer-events-none fixed inset-0 z-[60]">
+          {introVectors.map((v) => (
+            <div
+              key={v.id}
+              className="forms-fly-icon absolute"
+              style={{
+                left: 0,
+                top: 0,
+                animationDelay: `${v.delay}ms`,
+                ["--fx-from-x" as never]: `${v.fromX}px`,
+                ["--fx-from-y" as never]: `${v.fromY}px`,
+                ["--fx-to-x" as never]: `${v.toX}px`,
+                ["--fx-to-y" as never]: `${v.toY}px`,
+              }}
+            >
+              <FileText className="h-5 w-5 text-gold drop-shadow-md" />
+            </div>
+          ))}
+        </div>
+      )}
     <AppShell
       title="Paneli OPB"
       description="Shiko formularët e dorëzuar nga Autoritetet Kontraktore dhe shkarko dokumentet PDF."
@@ -182,7 +266,7 @@ export function ObpPanelPage() {
         ))}
       </div>
 
-      <div className="mt-8 rounded-xl border bg-card shadow-[var(--shadow-card)]">
+      <div ref={listCardRef} className="mt-8 rounded-xl border bg-card shadow-[var(--shadow-card)]">
         <div className="flex flex-col gap-3 border-b px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="text-base font-semibold">Formularët e dorëzuar</h2>
@@ -237,7 +321,7 @@ export function ObpPanelPage() {
           })}
         </div>
 
-        <ul className="divide-y">
+        <ul key={rowsKey} className="divide-y">
           {pageRows.map((f, idx) => {
             const viewed = Boolean(f.opbViewedAt);
             const downloaded = Boolean(f.opbDownloadedAt);
@@ -252,11 +336,8 @@ export function ObpPanelPage() {
             return (
               <li
                 key={f.id}
-                className="group/row px-5 py-4 transition-all duration-200 hover:bg-muted/30"
-                style={{
-                  animation: `forms-row-rise 360ms ease-out both`,
-                  animationDelay: `${idx * 35}ms`,
-                }}
+                className={`group/row px-5 py-4 transition-all duration-200 hover:bg-muted/30 ${rowsAnimate ? "forms-row-rise" : ""}`}
+                style={rowsAnimate ? { animationDelay: `${rowsBaseDelay + idx * INTRO_ROW_DELAY_MS}ms` } : undefined}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex min-w-0 items-start gap-4">
@@ -352,5 +433,6 @@ export function ObpPanelPage() {
         />
       </div>
     </AppShell>
+    </>
   );
 }
