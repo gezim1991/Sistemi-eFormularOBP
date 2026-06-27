@@ -7,8 +7,8 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 
-# Build TanStack Start / Nitro for Node.js target
-RUN npm run build
+# Build TanStack Start / Nitro for Node.js server target (not Cloudflare Workers default)
+RUN NITRO_PRESET=node-server npm run build
 
 # ── Runtime stage ──
 FROM node:22-alpine
