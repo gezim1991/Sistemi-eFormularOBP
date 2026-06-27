@@ -104,8 +104,9 @@ export function InlineYellow({
       data-placeholder={!filled ? placeholder : undefined}
       onInput={(e) => {
         skipSync.current = true;
-        onChange(e.currentTarget.textContent ?? "");
-        // Allow the next external-change effect to re-sync if needed
+        // Replace non-breaking spaces ( ) browsers insert in contenteditable —
+        // trim() does not strip them, which breaks regex validation in production SSR
+        onChange((e.currentTarget.textContent ?? "").replace(/ /g, " "));
         requestAnimationFrame(() => { skipSync.current = false; });
       }}
       onKeyDown={(e) => {
