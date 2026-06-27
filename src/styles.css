@@ -374,14 +374,62 @@
     margin: 0;
   }
 
-  /* Each document page breaks to a new sheet */
+  /* Each document page occupies exactly one printed sheet */
   .doc-page-break {
     break-after: page;
+    break-inside: avoid;
   }
 
-  /* Remove hover animations and transitions for print */
+  /* Prevent tables from splitting across printed pages */
+  table, .doc-table-wrap {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep calc-block title attached to its table */
+  .doc-calc-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Strip all background colors and decorative ring for official look */
   * {
     animation: none !important;
     transition: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Restore white page background */
+  .doc-page-break {
+    background-color: white !important;
+  }
+
+  /* Make inline yellow highlights plain text */
+  .doc-inline-val {
+    background: none !important;
+    ring: none !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Section titles: keep navy color readable in B&W */
+  .doc-section-title {
+    color: black !important;
+    border-bottom: 1px solid black;
+  }
+
+  /* Table header: plain gray instead of colored */
+  .doc-thead {
+    background-color: #f0f0f0 !important;
+    color: black !important;
+  }
+
+  /* CalcBlock title: plain border instead of gold */
+  .doc-calc-title {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #999 !important;
+    color: black !important;
   }
 }

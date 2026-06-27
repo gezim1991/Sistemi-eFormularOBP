@@ -77,9 +77,9 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Pro
     : [];
 
   return (
-    <div className="mt-3 overflow-hidden rounded-md border border-navy/20 print:rounded-none">
+    <div className="doc-table-wrap mt-3 overflow-hidden rounded-md border border-navy/20 print:rounded-none">
       <table className="w-full table-fixed border-collapse font-serif text-[13px]">
-        <thead>
+        <thead className="doc-thead">
           <tr className="bg-navy/5">
             {showIndex && (
               <th className="w-10 border-b border-navy/15 px-2 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-navy">

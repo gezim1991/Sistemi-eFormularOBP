@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Plus,
@@ -22,6 +22,14 @@ import { STATUS_META, type FormStatus } from "@/lib/forms-types";
 import { canBeSeenByOpb, getOpbFreshCount } from "@/features/OBP/opbActivity";
 import { formsApi } from "@/lib/api/forms";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { UploadBox } from "@/components/UploadBox";
 
 export const ALL_STATUSES: FormStatus[] = [
   "draft",
@@ -72,32 +80,31 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
     [remove],
   );
 
-  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [uploadPending, setUploadPending] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   const handleUploadClick = useCallback((id: string) => {
     setUploadingId(id);
-    uploadInputRef.current?.click();
+    setUploadModalOpen(true);
   }, []);
 
-  const handleFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      e.target.value = "";
-      if (!file || !uploadingId) return;
+  const handleUpload = useCallback(
+    async (file: File) => {
+      if (!uploadingId) return;
       setUploadPending(true);
       try {
         await formsApi.uploadSigned(uploadingId, file);
         await refresh();
         toast.success("Dokumenti i firmosur u ngarkua me sukses.");
+        setUploadModalOpen(false);
+        setUploadingId(null);
       } catch (err) {
         toast.error("Gabim gjatë ngarkimit.", {
           description: err instanceof Error ? err.message : "Provoni sërish.",
         });
       } finally {
         setUploadPending(false);
-        setUploadingId(null);
       }
     },
     [uploadingId, refresh],
@@ -254,14 +261,18 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
 
   return (
     <>
-      {/* Hidden file input for signed PDF upload */}
-      <input
-        ref={uploadInputRef}
-        type="file"
-        accept=".pdf"
-        className="sr-only"
-        onChange={handleFileChange}
-      />
+      {/* Upload modal for signed PDF */}
+      <Dialog open={uploadModalOpen} onOpenChange={(o) => { if (!uploadPending) { setUploadModalOpen(o); if (!o) setUploadingId(null); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Ngarko dokumentin e firmosur</DialogTitle>
+            <DialogDescription>
+              Pas firmosjes, ngarko PDF-në përfundimtare për verifikim.
+            </DialogDescription>
+          </DialogHeader>
+          <UploadBox onUpload={handleUpload} uploading={uploadPending} />
+        </DialogContent>
+      </Dialog>
     <AppShell
       title="Formularët"
       description={

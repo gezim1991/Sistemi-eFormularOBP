@@ -280,7 +280,7 @@ function Page({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="group/section mt-10 animate-[field-slide-in_240ms_ease-out]">
-      <h2 className="relative inline-flex font-serif text-[15px] font-bold tracking-wide text-navy">
+      <h2 className="doc-section-title relative inline-flex font-serif text-[15px] font-bold tracking-wide text-navy">
         {title}
         <span className="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-gold transition-transform duration-300 ease-out group-hover/section:scale-x-100" />
       </h2>
@@ -291,8 +291,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function CalcBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="group/calc mt-4">
-      <p className="rounded-md border border-gold/40 bg-gold/10 px-3 py-2 font-sans text-sm font-semibold text-navy transition-all duration-200 ease-out group-hover/calc:-translate-y-0.5 group-hover/calc:border-gold/70 group-hover/calc:bg-gold/15 group-hover/calc:shadow-sm">
+    <div className="doc-calc-block group/calc mt-4">
+      <p className="doc-calc-title rounded-md border border-gold/40 bg-gold/10 px-3 py-2 font-sans text-sm font-semibold text-navy transition-all duration-200 ease-out group-hover/calc:-translate-y-0.5 group-hover/calc:border-gold/70 group-hover/calc:bg-gold/15 group-hover/calc:shadow-sm">
         {title}
       </p>
       <div className="mt-2">{children}</div>
@@ -318,7 +318,7 @@ function Filled({ value, className, big }: { value: string; className?: string; 
 function Inline({ value }: { value: string }) {
   return (
     <span
-      className="mx-1 inline-block max-w-full break-words rounded-sm bg-yellow-50 px-1.5 py-0.5 align-baseline ring-1 ring-transparent transition-all duration-200 hover:-translate-y-px hover:bg-yellow-100 hover:ring-gold/40"
+      className="doc-inline-val mx-1 inline-block max-w-full break-words rounded-sm bg-yellow-50 px-1.5 py-0.5 align-baseline ring-1 ring-transparent transition-all duration-200 hover:-translate-y-px hover:bg-yellow-100 hover:ring-gold/40"
       style={{ fontFamily: '"Times New Roman", Times, serif', fontSize: 14 }}
     >
       {value?.trim() || <span className="italic text-muted-foreground">—</span>}
@@ -344,9 +344,9 @@ function RowsTable({
     );
   }
   return (
-    <div className="mt-2 overflow-hidden rounded-md border border-navy/20 transition-all duration-200 hover:border-navy/35 hover:shadow-sm">
+    <div className="doc-table-wrap mt-2 overflow-hidden rounded-md border border-navy/20 transition-all duration-200 hover:border-navy/35 hover:shadow-sm">
       <table className="w-full font-serif text-[13px]">
-        <thead className="bg-navy/5 text-navy">
+        <thead className="doc-thead bg-navy/5 text-navy">
           <tr>
             {showIndex && (
               <th className="border-b border-navy/15 px-2 py-2 text-center font-semibold">#</th>
@@ -392,9 +392,9 @@ function ValueTable({ rows }: { rows: Array<Record<string, string>> }) {
   }
   const total = visible.reduce((acc, r) => acc + parseNum(r.sasia) * parseNum(r.cmimi), 0);
   return (
-    <div className="mt-2 overflow-hidden rounded-md border border-navy/20 transition-all duration-200 hover:border-navy/35 hover:shadow-sm">
+    <div className="doc-table-wrap mt-2 overflow-hidden rounded-md border border-navy/20 transition-all duration-200 hover:border-navy/35 hover:shadow-sm">
       <table className="w-full font-serif text-[13px]">
-        <thead className="bg-navy/5 text-navy">
+        <thead className="doc-thead bg-navy/5 text-navy">
           <tr>
             {[
               "Manuali",
