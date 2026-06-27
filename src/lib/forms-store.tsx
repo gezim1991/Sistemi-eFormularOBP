@@ -9,6 +9,7 @@ import {
 } from "react";
 import { formsApi } from "@/lib/api/forms";
 import { type FormRecord, type FormStatus } from "./forms-types";
+import { useAuth } from "@/lib/auth-store";
 
 interface FormsContextValue {
   forms: FormRecord[];
@@ -28,6 +29,7 @@ interface FormsContextValue {
 const FormsContext = createContext<FormsContextValue | null>(null);
 
 export function FormsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [forms, setForms] = useState<FormRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [seenCount, setSeenCount] = useState(0);
@@ -45,8 +47,14 @@ export function FormsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchForms();
-  }, [fetchForms]);
+    if (user) {
+      fetchForms();
+    } else {
+      setForms([]);
+      setSeenCount(0);
+      setLoading(false);
+    }
+  }, [user, fetchForms]);
 
   const refresh = useCallback(() => fetchForms(), [fetchForms]);
 
