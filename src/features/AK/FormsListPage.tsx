@@ -6,23 +6,16 @@ import {
   Eye,
   Pencil,
   FileDown,
-  Upload,
   FileText,
-  MoreHorizontal,
   Filter,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyStateMotion } from "@/components/EmptyStateMotion";
 import { Pager, usePaged, DEFAULT_PAGE_SIZE } from "@/components/Pager";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useForms } from "@/lib/forms-store";
 import { useAuth } from "@/lib/auth-store";
 import { STATUS_META, type FormStatus } from "@/lib/forms-types";
@@ -48,7 +41,6 @@ const FILTERS: { value: FormStatus | "all"; label: string }[] = [
   { value: "pdf_generated", label: STATUS_META.pdf_generated.label },
   { value: "signed_uploaded", label: STATUS_META.signed_uploaded.label },
   { value: "submitted_to_opb", label: STATUS_META.submitted_to_opb.label },
-  { value: "archived", label: STATUS_META.archived.label },
 ];
 
 function fmtDate(iso: string) {
@@ -65,7 +57,51 @@ const INTRO_STAGGER_MS = 110;
 const INTRO_ROW_DELAY_MS = 90;
 
 export function FormsListPage({ search }: { search: FormsSearch }) {
-  const { forms, setStatus, unseenCount, markFormsSeen, refresh } = useForms();
+  const { forms, remove, unseenCount, markFormsSeen, refresh } = useForms();
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (!window.confirm("A jeni i sigurt që doni ta fshini këtë formular?")) return;
+      try {
+        await remove(id);
+        toast.success("Formulari u fshi.");
+      } catch {
+        toast.error("Gabim gjatë fshirjes.");
+      }
+    },
+    [remove],
+  );
+
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [uploadPending, setUploadPending] = useState(false);
+
+  const handleUploadClick = useCallback((id: string) => {
+    setUploadingId(id);
+    uploadInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file || !uploadingId) return;
+      setUploadPending(true);
+      try {
+        await formsApi.uploadSigned(uploadingId, file);
+        await refresh();
+        toast.success("Dokumenti i firmosur u ngarkua me sukses.");
+      } catch (err) {
+        toast.error("Gabim gjatë ngarkimit.", {
+          description: err instanceof Error ? err.message : "Provoni sërish.",
+        });
+      } finally {
+        setUploadPending(false);
+        setUploadingId(null);
+      }
+    },
+    [uploadingId, refresh],
+  );
   const navigate = useNavigate();
   const { user } = useAuth();
   const isOpb = user?.role === "opb";
@@ -78,13 +114,22 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
   const listCardRef = useRef<HTMLDivElement | null>(null);
   const introSourceCount = isOpb ? getOpbFreshCount(forms) : unseenCount;
   const introIconCount = Math.min(introSourceCount, INTRO_MAX_ICONS);
+  // For OPB sidebar click: always animate with total submitted count
+  const opbTotalIconCount = isOpb
+    ? Math.min(forms.filter((f) => f.status === "submitted_to_opb").length, INTRO_MAX_ICONS)
+    : 0;
   const [introPlaying, setIntroPlaying] = useState(false);
   const [introVectors, setIntroVectors] = useState<
     { id: number; fromX: number; fromY: number; toX: number; toY: number; delay: number }[]
   >([]);
+  // Rows animation state — remount tbody on replay so rows re-enter
+  const [rowsKey, setRowsKey] = useState(0);
+  const [rowsBaseDelay, setRowsBaseDelay] = useState(introIconCount > 0 ? 1000 : 0);
+  const [rowsAnimate, setRowsAnimate] = useState(introIconCount > 0);
 
-  const playIntroAnimation = useCallback(() => {
-    if (introIconCount === 0) {
+  const playIntroAnimation = useCallback((overrideCount?: number) => {
+    const count = overrideCount ?? introIconCount;
+    if (count === 0) {
       setIntroPlaying(false);
       return;
     }
@@ -98,26 +143,20 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
     const sourceX = sourceRect ? sourceRect.left + sourceRect.width / 2 : targetX - 320;
     const sourceY = sourceRect ? sourceRect.top + sourceRect.height / 2 : targetY;
 
-    const vectors = Array.from({ length: introIconCount }, (_, i) => {
-      const jitterX = (Math.random() - 0.5) * 80;
-      const jitterY = (Math.random() - 0.5) * 120;
-      return {
-        id: i,
-        fromX: sourceX,
-        fromY: sourceY,
-        toX: targetX + jitterX,
-        toY: targetY + jitterY,
-        delay: i * INTRO_STAGGER_MS,
-      };
-    });
+    const vectors = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      fromX: sourceX,
+      fromY: sourceY,
+      toX: targetX + (Math.random() - 0.5) * 80,
+      toY: targetY + (Math.random() - 0.5) * 120,
+      delay: i * INTRO_STAGGER_MS,
+    }));
     setIntroVectors(vectors);
     setIntroPlaying(true);
 
-    const totalMs = INTRO_FLY_MS + (introIconCount - 1) * INTRO_STAGGER_MS;
+    const totalMs = INTRO_FLY_MS + (count - 1) * INTRO_STAGGER_MS;
     const t = window.setTimeout(() => setIntroPlaying(false), totalMs);
     if (!isOpb) {
-      // Mark all current forms as seen so the badge resets to 0 and the
-      // animation does not replay on the next visit.
       markFormsSeen();
     }
     window.sessionStorage.removeItem("lov.forms.playIntro.v1");
@@ -135,12 +174,19 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
 
   useEffect(() => {
     const replayFromSidebar = () => {
-      const timer = playIntroAnimation();
+      const count = isOpb ? opbTotalIconCount : introIconCount;
+      if (count === 0) return;
+      // Hide rows immediately — they will reappear after icons land
+      setRowsKey((k) => k + 1);
+      setRowsBaseDelay(INTRO_FLY_MS);
+      setRowsAnimate(true);
+      // Play the icon fly animation
+      const timer = playIntroAnimation(isOpb ? opbTotalIconCount : undefined);
       if (timer) window.setTimeout(() => window.clearTimeout(timer), INTRO_FLY_MS + 250);
     };
     window.addEventListener("lov:forms-intro-requested", replayFromSidebar);
     return () => window.removeEventListener("lov:forms-intro-requested", replayFromSidebar);
-  }, [playIntroAnimation]);
+  }, [playIntroAnimation, isOpb, opbTotalIconCount, introIconCount]);
 
   // Keep local filter chip in sync when sidebar nav changes the URL.
   useEffect(() => {
@@ -173,9 +219,8 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
 
   const markOpbDownloaded = useCallback(
     (id: string) => {
-      window.open(formsApi.downloadPdfUrl(id), "_blank", "noopener,noreferrer");
+      window.open(`/doc-print/${id}`, "_blank", "noopener,noreferrer");
       refresh().catch(() => null);
-      toast.success("PDF-ja po shkarkohet.");
     },
     [refresh],
   );
@@ -208,6 +253,15 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
   const pageRows = paged.slice;
 
   return (
+    <>
+      {/* Hidden file input for signed PDF upload */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept=".pdf"
+        className="sr-only"
+        onChange={handleFileChange}
+      />
     <AppShell
       title="Formularët"
       description={
@@ -294,22 +348,22 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                 <th className="px-5 py-3 text-right font-medium">Veprime</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody key={rowsKey} className="divide-y">
               {pageRows.map((f, idx) => {
                 const fresh = isOpbFresh(f);
                 return (
                   <tr
                     key={f.id}
                     className={[
-                      introIconCount > 0 ? "forms-row-rise" : "",
+                      rowsAnimate ? "forms-row-rise" : "",
                       "transition-colors",
                       fresh
                         ? "bg-accent/5 shadow-[inset_3px_0_0_var(--color-gold)] hover:bg-accent/10"
                         : "hover:bg-muted/30",
                     ].join(" ")}
                     style={
-                      introIconCount > 0
-                        ? { animationDelay: `${1000 + idx * INTRO_ROW_DELAY_MS}ms` }
+                      rowsAnimate
+                        ? { animationDelay: `${rowsBaseDelay + idx * INTRO_ROW_DELAY_MS}ms` }
                         : undefined
                     }
                   >
@@ -357,82 +411,75 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                     )}
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
+                        {/* Shiko — visible for all */}
                         <Button
                           asChild
                           size="sm"
                           variant="ghost"
-                          className={[
-                            "h-8 px-2 transition-all duration-200",
-                            fresh
-                              ? "text-primary hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary"
-                              : "text-muted-foreground hover:text-foreground",
-                          ].join(" ")}
+                          className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                          title="Shiko"
                         >
                           <Link
                             to="/forms/$id"
                             params={{ id: f.id }}
-                            onClick={() => {
-                              if (isOpb) markOpbViewed(f.id);
-                            }}
+                            onClick={() => { if (isOpb) markOpbViewed(f.id); }}
                           >
                             <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
+
                         {isOpb ? (
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => markOpbDownloaded(f.id)}
-                            className="group/download h-8 px-2 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:text-primary"
-                            aria-label="Shkarko PDF"
+                            className="group/download h-8 px-2 text-muted-foreground hover:text-primary"
+                            title="Shkarko PDF"
                           >
-                            <FileDown className="h-4 w-4 transition-transform duration-200 group-hover/download:translate-y-0.5" />
+                            <FileDown className="h-4 w-4 transition-transform group-hover/download:translate-y-0.5" />
                           </Button>
                         ) : (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                          <>
+                            {/* Edit — vetëm për draft */}
+                            {f.status === "draft" && (
                               <Button
+                                asChild
                                 size="sm"
                                 variant="ghost"
                                 className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                                title="Ndrysho"
                               >
-                                <MoreHorizontal className="h-4 w-4" />
+                                <Link to="/formulare/$id" params={{ id: f.id }}>
+                                  <Pencil className="h-4 w-4" />
+                                </Link>
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                              <DropdownMenuItem
-                                onClick={() => navigate({ to: "/forms/$id", params: { id: f.id } })}
+                            )}
+
+                            {/* Ngarko i firmosur — vetëm për pdf_generated */}
+                            {f.status === "pdf_generated" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleUploadClick(f.id)}
+                                disabled={uploadPending && uploadingId === f.id}
+                                className="h-8 px-2 text-muted-foreground hover:text-primary"
+                                title="Ngarko formularin e firmosur"
                               >
-                                <Eye className="mr-2 h-4 w-4" /> Shiko detajet
-                              </DropdownMenuItem>
-                              {f.status === "draft" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    navigate({ to: "/forms/$id", params: { id: f.id } })
-                                  }
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" /> Vazhdo plotësimin
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setStatus(f.id, "pdf_generated");
-                                  toast.success("PDF u gjenerua me sukses.");
-                                }}
-                              >
-                                <FileText className="mr-2 h-4 w-4" /> Gjenero PDF
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => toast.success("PDF-ja u shkarkua.")}>
-                                <FileDown className="mr-2 h-4 w-4" /> Shkarko PDF
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => navigate({ to: "/forms/$id", params: { id: f.id } })}
-                              >
-                                <Upload className="mr-2 h-4 w-4" /> Ngarko të firmosur
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            )}
+
+                            {/* Fshi — për të gjitha */}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(f.id)}
+                              className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                              title="Fshi"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -480,5 +527,6 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
         />
       </div>
     </AppShell>
+    </>
   );
 }

@@ -157,11 +157,12 @@ export function FormDetailsPage({ id }: { id: string }) {
       done: !!form.signedUploadedAt,
     },
     {
-      label: form.status === "rejected" ? "Aplikimi u refuzua" : "U dërgua në OBP",
-
-      at: form.status === "verified" || form.status === "rejected" ? form.updatedAt : undefined,
-      icon: form.status === "rejected" ? XCircle : ShieldCheck,
-      done: form.status === "verified" || form.status === "rejected",
+      label: form.status === "rejected" ? "Aplikimi u refuzua" : "Dërguar në OBP",
+      at: ["submitted_to_opb", "verified", "rejected"].includes(form.status)
+        ? form.submittedToOpbAt || form.updatedAt
+        : undefined,
+      icon: form.status === "rejected" ? XCircle : Send,
+      done: ["submitted_to_opb", "verified", "rejected"].includes(form.status),
       danger: form.status === "rejected",
     },
   ];
@@ -189,9 +190,7 @@ export function FormDetailsPage({ id }: { id: string }) {
 
   const onDownload = () => {
     if (!form) return;
-    const url = formsApi.downloadPdfUrl(form.id);
-    window.open(url, "_blank", "noopener,noreferrer");
-    toast.success("PDF-ja po shkarkohet.");
+    window.open(`/doc-print/${form.id}`, "_blank", "noopener,noreferrer");
   };
 
   const onUpload = async (file: File) => {

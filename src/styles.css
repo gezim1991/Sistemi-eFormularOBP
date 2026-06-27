@@ -366,3 +366,22 @@
 .login-success-pulse {
   animation: login-success-pulse 600ms ease-out;
 }
+
+/* ── Print / PDF export ── */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* Each document page breaks to a new sheet */
+  .doc-page-break {
+    break-after: page;
+  }
+
+  /* Remove hover animations and transitions for print */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

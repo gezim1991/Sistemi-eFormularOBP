@@ -250,7 +250,7 @@ function Page({
 }) {
   return (
     <div
-      className="group/page relative mx-auto w-full origin-top bg-white px-10 py-12 shadow-md ring-1 ring-border transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_55px_-32px_rgba(15,23,42,0.45)] hover:ring-navy/20 print:transform-none print:shadow-none sm:px-16"
+      className="doc-page-break group/page relative mx-auto w-full origin-top bg-white px-10 py-12 shadow-md ring-1 ring-border transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_55px_-32px_rgba(15,23,42,0.45)] hover:ring-navy/20 print:transform-none print:shadow-none sm:px-16"
       style={{
         minHeight: 1123,
         width: 794,

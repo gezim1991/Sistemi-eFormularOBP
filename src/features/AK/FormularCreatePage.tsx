@@ -229,11 +229,10 @@ function hasFilledRows(rows: Row[]) {
 
 export function FormularCreatePage({ editId }: { editId?: string }) {
   const navigate = useNavigate();
-  const { create, get, update, updateData, setStatus } = useFormulare();
+  const { create, get, update, generatePdf } = useFormulare();
   const existingFormular = editId ? get(editId) : undefined;
   const [generating, setGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
-  const [pendingGeneratedId, setPendingGeneratedId] = useState<string | null>(null);
   const [hydratedEditId, setHydratedEditId] = useState<string | null>(null);
   const [showGenerateShortcut, setShowGenerateShortcut] = useState(false);
   const [generatePulse, setGeneratePulse] = useState(false);
@@ -396,12 +395,24 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
   useEffect(() => {
     if (!generating) return;
     const timer = window.setInterval(() => {
-      setGenerationProgress((c) =>
-        c >= 100 ? 100 : Math.min(c + Math.floor(Math.random() * 9) + 6, 100),
-      );
+      setGenerationProgress((c) => {
+        if (c >= 100) return 100; // don't reset once API has responded
+        return c >= 90 ? 90 : Math.min(c + Math.floor(Math.random() * 9) + 6, 90);
+      });
     }, 180);
     return () => window.clearInterval(timer);
   }, [generating]);
+
+  // Navigate when progress reaches 100% (set manually after API returns)
+  useEffect(() => {
+    if (!generating || generationProgress < 100) return;
+    const t = window.setTimeout(() => {
+      setGenerating(false);
+      toast.success(hasGeneratedPdf ? "PDF u rigjenerua." : "PDF u gjenerua me sukses.");
+      navigate({ to: "/forms" });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [generating, generationProgress, hasGeneratedPdf, navigate]);
 
   useEffect(() => {
     const updateShortcut = () => {
@@ -419,15 +430,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!generating || generationProgress < 100 || !pendingGeneratedId) return;
-    const t = window.setTimeout(() => {
-      setStatus(pendingGeneratedId, "pdf_generated");
-      toast.success(hasGeneratedPdf ? "PDF u rigjenerua." : "PDF u gjenerua me sukses.");
-      navigate({ to: "/forms" });
-    }, 450);
-    return () => window.clearTimeout(t);
-  }, [generating, generationProgress, hasGeneratedPdf, navigate, pendingGeneratedId, setStatus]);
+  // (navigation handled by the generationProgress >= 100 effect above)
 
   const validate = (): { ok: boolean; missing: string[] } => {
     const errSet = new Set<string>();
@@ -519,17 +522,30 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
         ...data,
         emerFormulari: docTitle,
         document,
-        ...(generate ? {} : { status: "draft" as const }),
       });
-      if (generate) {
-        setErrors(new Set());
-        setPendingGeneratedId(f.id);
-        setGenerationProgress(0);
-        setGenerating(true);
-      } else {
+
+      if (!generate) {
         toast.success("Drafti u ruajt.");
         navigate({ to: "/forms" });
+        return;
       }
+
+      // Start animation then call backend PDF generation
+      setErrors(new Set());
+      setGenerationProgress(0);
+      setGenerating(true);
+
+      generatePdf(f.id)
+        .then(() => {
+          setGenerationProgress(100); // triggers navigate via useEffect
+        })
+        .catch((genErr) => {
+          setGenerating(false);
+          setGenerationProgress(0);
+          toast.error("Gabim gjatë gjenerimit të PDF.", {
+            description: genErr instanceof Error ? genErr.message : "Provoni sërish.",
+          });
+        });
     } catch (err) {
       toast.error("Gabim gjatë ruajtjes.", {
         description: err instanceof Error ? err.message : "Provoni sërish.",

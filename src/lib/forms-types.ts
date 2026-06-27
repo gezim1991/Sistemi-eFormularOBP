@@ -15,7 +15,7 @@ export interface FormRecord {
   mbiemri: string;
   atesia: string;
   nid: string;
-  datelindja: string;
+  datelindja: string | null;
   email: string;
   telefon: string;
   adresa: string;

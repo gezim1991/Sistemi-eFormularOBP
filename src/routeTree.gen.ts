@@ -20,6 +20,7 @@ import { Route as FormulareNewRouteImport } from './routes/formulare.new'
 import { Route as FormulareIdRouteImport } from './routes/formulare.$id'
 import { Route as FormsNewRouteImport } from './routes/forms.new'
 import { Route as FormsIdRouteImport } from './routes/forms.$id'
+import { Route as DocPrintIdRouteImport } from './routes/doc-print.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSystemRouteImport } from './routes/admin.system'
 import { Route as AdminInstitutionsRouteImport } from './routes/admin.institutions'
@@ -79,6 +80,11 @@ const FormsIdRoute = FormsIdRouteImport.update({
   path: '/forms/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocPrintIdRoute = DocPrintIdRouteImport.update({
+  id: '/doc-print/$id',
+  path: '/doc-print/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
+  '/doc-print/$id': typeof DocPrintIdRoute
   '/forms/$id': typeof FormsIdRoute
   '/forms/new': typeof FormsNewRoute
   '/formulare/$id': typeof FormulareIdRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
+  '/doc-print/$id': typeof DocPrintIdRoute
   '/forms/$id': typeof FormsIdRoute
   '/forms/new': typeof FormsNewRoute
   '/formulare/$id': typeof FormulareIdRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
+  '/doc-print/$id': typeof DocPrintIdRoute
   '/forms/$id': typeof FormsIdRoute
   '/forms/new': typeof FormsNewRoute
   '/formulare/$id': typeof FormulareIdRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/admin/institutions'
     | '/admin/system'
     | '/admin/users'
+    | '/doc-print/$id'
     | '/forms/$id'
     | '/forms/new'
     | '/formulare/$id'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/admin/institutions'
     | '/admin/system'
     | '/admin/users'
+    | '/doc-print/$id'
     | '/forms/$id'
     | '/forms/new'
     | '/formulare/$id'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/admin/institutions'
     | '/admin/system'
     | '/admin/users'
+    | '/doc-print/$id'
     | '/forms/$id'
     | '/forms/new'
     | '/formulare/$id'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   AutoritetetRoute: typeof AutoritetetRoute
   LoginRoute: typeof LoginRoute
   OpbRoute: typeof OpbRoute
+  DocPrintIdRoute: typeof DocPrintIdRoute
   FormsIdRoute: typeof FormsIdRoute
   FormsNewRoute: typeof FormsNewRoute
   FormulareIdRoute: typeof FormulareIdRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FormsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doc-print/$id': {
+      id: '/doc-print/$id'
+      path: '/doc-print/$id'
+      fullPath: '/doc-print/$id'
+      preLoaderRoute: typeof DocPrintIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -331,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
   AutoritetetRoute: AutoritetetRoute,
   LoginRoute: LoginRoute,
   OpbRoute: OpbRoute,
+  DocPrintIdRoute: DocPrintIdRoute,
   FormsIdRoute: FormsIdRoute,
   FormsNewRoute: FormsNewRoute,
   FormulareIdRoute: FormulareIdRoute,

@@ -171,7 +171,7 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Pro
                 }
 
                 return (
-                  <td key={c.key} className="border-l border-navy/10 p-0 first:border-l-0">
+                  <td key={c.key} className="overflow-hidden border-l border-navy/10 p-0 first:border-l-0">
                     {editable && !c.compute ? (
                       <textarea
                         rows={1}
@@ -200,7 +200,7 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Pro
                     ) : (
                       <div
                         className={cn(
-                          "min-h-9 px-2 py-2 text-[13px] leading-snug",
+                          "min-h-9 break-all px-2 py-2 text-[13px] leading-snug",
                           c.compute && "bg-navy/[0.03] text-right font-semibold tabular-nums",
                         )}
                       >
@@ -231,7 +231,7 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Pro
               >
                 {footerRow.label}
               </td>
-              <td className="border-l border-t border-navy/20 px-2 py-2 text-right text-[13px] tabular-nums text-navy">
+              <td className="overflow-hidden break-all border-l border-t border-navy/20 px-2 py-2 text-right text-[13px] tabular-nums text-navy">
                 {footerRow.compute(rows)}
               </td>
               <td className="border-t border-navy/20 print:hidden" />
@@ -278,7 +278,7 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Pro
                   key={c.value}
                   type="button"
                   onClick={() => {
-                    setCell(search.rowId, search.col.key, c.label);
+                    setCell(search.rowId, search.col.key, c.value);
                     setSearch(null);
                   }}
                   className="block w-full border-b border-navy/5 px-3 py-2 text-left text-sm transition-colors hover:bg-gold/10 last:border-0"

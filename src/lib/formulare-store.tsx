@@ -2,6 +2,7 @@
 // expected by the procurement-planning form (FormularCreatePage).
 import { useMemo } from "react";
 import { useForms } from "./forms-store";
+import { formsApi } from "./api/forms";
 import type { FormRecord } from "./forms-types";
 
 export interface FormularRecord extends FormRecord {
@@ -16,7 +17,7 @@ function enrich(f: FormRecord | undefined): FormularRecord | undefined {
 }
 
 export function useFormulare() {
-  const { forms, getById, create, update, setStatus, remove } = useForms();
+  const { forms, getById, create, update, setStatus, remove, refresh } = useForms();
 
   return useMemo(
     () => ({
@@ -31,7 +32,7 @@ export function useFormulare() {
           mbiemri: partial.mbiemri ?? "",
           atesia: partial.atesia ?? "",
           nid: partial.nid ?? "",
-          datelindja: partial.datelindja ?? "",
+          datelindja: partial.datelindja || null,
           email: partial.email ?? "",
           telefon: partial.telefon ?? "",
           adresa: partial.adresa ?? "",
@@ -44,9 +45,17 @@ export function useFormulare() {
 
       update: (id: string, patch: Partial<FormRecord>) => update(id, patch),
       updateData: (id: string, patch: Partial<FormRecord>) => update(id, patch),
+
+      generatePdf: async (id: string): Promise<FormularRecord> => {
+        const form = await formsApi.generatePdf(id);
+        // Sync store so the list shows pdf_generated status immediately
+        refresh().catch(() => null);
+        return enrich(form)!;
+      },
+
       setStatus,
       remove,
     }),
-    [forms, getById, create, update, setStatus, remove],
+    [forms, getById, create, update, setStatus, remove, refresh],
   );
 }

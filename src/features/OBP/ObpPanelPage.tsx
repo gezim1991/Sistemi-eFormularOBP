@@ -11,7 +11,6 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { EmptyStateMotion } from "@/components/EmptyStateMotion";
 import { AppShell } from "@/components/layout/AppShell";
 import { Pager, usePaged, DEFAULT_PAGE_SIZE } from "@/components/Pager";
@@ -117,12 +116,8 @@ export function ObpPanelPage() {
   }
 
   function markDownloaded(form: FormRecord) {
-    const url = formsApi.downloadPdfUrl(form.id);
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(`/doc-print/${form.id}`, "_blank", "noopener,noreferrer");
     refresh().catch(() => null);
-    toast.success("Formulari po shkarkohet", {
-      description: `${form.emerFormulari || form.id} PDF po hapet.`,
-    });
   }
 
   const statCards = [

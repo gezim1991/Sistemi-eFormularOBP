@@ -191,7 +191,7 @@ export function AppShell({
                   to={item.to}
                   search={item.search ? item.search : undefined}
                   title={collapsedNav ? item.label : undefined}
-                  data-obp-target={itemStatus === "verified" ? "" : undefined}
+                  data-obp-target={itemStatus === "submitted_to_opb" ? "" : undefined}
                   data-nav-key={isAllForms ? "forms-all" : undefined}
                   onClick={() => {
                     if (isAllForms) {

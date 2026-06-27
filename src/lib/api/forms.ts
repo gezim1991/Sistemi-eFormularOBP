@@ -28,8 +28,14 @@ export const formsApi = {
 
   delete: (id: string) => apiFetch(`/forms/${id}/`, { method: "DELETE" }),
 
-  generatePdf: (id: string) =>
-    apiJson<FormRecord>(`/forms/${id}/generate-pdf/`, { method: "POST" }),
+  generatePdf: (id: string) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+    return apiJson<FormRecord>(`/forms/${id}/generate-pdf/`, {
+      method: "POST",
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
+  },
 
   /** Returns a direct-download URL (opens file response). */
   downloadPdfUrl: (id: string) => `${API_BASE}/forms/${id}/download-pdf/`,
