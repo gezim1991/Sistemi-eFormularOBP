@@ -193,7 +193,7 @@ export function AppShell({
                   search={item.search ? item.search : undefined}
                   title={collapsedNav ? item.label : undefined}
                   data-obp-target={itemStatus === "submitted_to_opb" ? "" : undefined}
-                  data-nav-key={isAllForms ? "forms-all" : isObpPanel ? "opb-panel" : undefined}
+                  data-nav-key={isAllForms ? "forms-all" : undefined}
                   onClick={() => {
                     if (isAllForms) {
                       setAllFormsTooltipOpen(false);
@@ -201,8 +201,6 @@ export function AppShell({
                         window.sessionStorage.setItem("lov.forms.playIntro.v1", "1");
                         window.dispatchEvent(new Event("lov:forms-intro-requested"));
                       }
-                    } else if (isObpPanel && typeof window !== "undefined") {
-                      window.dispatchEvent(new Event("lov:opb-panel-requested"));
                     }
                   }}
                   className={cn(
