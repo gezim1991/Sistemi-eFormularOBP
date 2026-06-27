@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useFormulare } from "@/lib/formulare-store";
+import { useAuth } from "@/lib/auth-store";
 import type { FormularDocumentData } from "@/lib/mock-data";
 import { Btn } from "@/components/btn";
 import { AppShell } from "@/components/layout/AppShell";
@@ -229,6 +230,7 @@ function hasFilledRows(rows: Row[]) {
 
 export function FormularCreatePage({ editId }: { editId?: string }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { create, get, update, generatePdf } = useFormulare();
   const existingFormular = editId ? get(editId) : undefined;
   const [generating, setGenerating] = useState(false);
@@ -243,6 +245,16 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
   const [titulliProjekti, setTitulliProjekti] = useState("");
   const [adresaFooter, setAdresaFooter] = useState("");
   const [emertimiInst, setEmertimiInst] = useState("");
+
+  // Auto-fill institution fields from user profile when creating a new form
+  useEffect(() => {
+    if (editId || !user) return;
+    const inst = user.institucioni ?? "";
+    const nipt = user.nipt ? `, NIPT: ${user.nipt}` : "";
+    setEmertimiInst((prev) => prev || inst + nipt);
+    setAdresaFooter((prev) => prev || (user.adresaInstitucioni ?? ""));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, editId]);
   const [objektiProkurimit, setObjektiProkurimit] = useState("");
   const [kodiCPV, setKodiCPV] = useState("");
   const [panoramaObjektivat, setPanoramaObjektivat] = useState("");

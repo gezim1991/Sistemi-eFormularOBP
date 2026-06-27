@@ -12,10 +12,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="full_name")
     role = serializers.SerializerMethodField()
     institucioni = serializers.SerializerMethodField()
+    nipt = serializers.SerializerMethodField()
+    adresaInstitucioni = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["email", "name", "role", "institucioni", "initials"]
+        fields = ["email", "name", "role", "institucioni", "nipt", "adresaInstitucioni", "initials"]
 
     def get_role(self, obj):
         return ROLE_MAP.get(obj.role, "aplikues")
@@ -24,6 +26,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if obj.institution:
             return obj.institution.name
         return None
+
+    def get_nipt(self, obj):
+        if obj.institution:
+            return obj.institution.nipt or ""
+        return ""
+
+    def get_adresaInstitucioni(self, obj):
+        if obj.institution:
+            return obj.institution.address or ""
+        return ""
 
 
 class LoginSerializer(serializers.Serializer):

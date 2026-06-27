@@ -3,6 +3,7 @@ from django.db import models
 
 class Institution(models.Model):
     name = models.CharField(max_length=300)
+    nipt = models.CharField(max_length=50, blank=True)
     type = models.CharField(max_length=100, blank=True)
     address = models.TextField(blank=True)
     email = models.EmailField(blank=True)

@@ -16,6 +16,8 @@ export interface AuthUser {
   name: string;
   role: UserRole;
   institucioni?: string;
+  nipt?: string;
+  adresaInstitucioni?: string;
   initials: string;
 }
 
