@@ -611,7 +611,7 @@ function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b pb-2 last:border-0">
       <span className="text-muted-foreground">{label}</span>
-      <span className="max-w-[62%] text-right font-medium">{value}</span>
+      <span className="max-w-[62%] break-all text-right font-medium">{value}</span>
     </div>
   );
 }
