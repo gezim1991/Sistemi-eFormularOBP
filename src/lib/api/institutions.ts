@@ -3,6 +3,7 @@ import { apiJson, apiFetch } from "./client";
 export interface ApiInstitution {
   id: number;
   name: string;
+  nipt: string;
   type: string;
   address: string;
   email: string;

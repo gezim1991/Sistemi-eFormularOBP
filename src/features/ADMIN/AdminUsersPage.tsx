@@ -986,6 +986,7 @@ function InstitutionForm({
 }) {
   const isEdit = Boolean(initial);
   const [name, setName] = useState(initial?.name ?? "");
+  const [nipt, setNipt] = useState(initial?.nipt ?? "");
   const [type, setType] = useState(initial?.type ?? "");
   const [address, setAddress] = useState(initial?.address ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
@@ -1003,6 +1004,7 @@ function InstitutionForm({
       if (isEdit && initial) {
         await institutionsApi.update(initial.id, {
           name: name.trim(),
+          nipt: nipt.trim(),
           type: type.trim(),
           address: address.trim(),
           email: email.trim(),
@@ -1012,6 +1014,7 @@ function InstitutionForm({
       } else {
         await institutionsApi.create({
           name: name.trim(),
+          nipt: nipt.trim(),
           type: type.trim(),
           address: address.trim(),
           email: email.trim(),
@@ -1053,7 +1056,17 @@ function InstitutionForm({
             id="i-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="p.sh. Bashkia Tiranë"
+            placeholder="p.sh. Drejtoria e Përgjithshme e Policisë së Shtetit"
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <Label htmlFor="i-nipt">NIPT</Label>
+          <Input
+            id="i-nipt"
+            value={nipt}
+            onChange={(e) => setNipt(e.target.value)}
+            placeholder="p.sh. K12345678A"
           />
         </div>
 
@@ -1075,12 +1088,12 @@ function InstitutionForm({
         </div>
 
         <div className="grid gap-1.5">
-          <Label htmlFor="i-address">Qyteti / Adresa</Label>
+          <Label htmlFor="i-address">Adresa e plotë</Label>
           <Input
             id="i-address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="p.sh. Tiranë"
+            placeholder="p.sh. Rruga Dëshmorët e Kombit, Tiranë"
           />
         </div>
 
