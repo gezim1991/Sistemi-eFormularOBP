@@ -1,6 +1,12 @@
 # Uploaded user files — managed on server, not tracked in git
 backend/media/
 
+# Python virtual environment and bytecode
+backend/venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
 # Environment / secrets
 .env
 .env.prod
