@@ -1,0 +1,12 @@
+node_modules
+.venv
+venv
+backend/venv
+backend/.venv
+dist
+.output
+.vinxi
+pnpm-lock.yaml
+package-lock.json
+bun.lock
+routeTree.gen.ts

@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manual Përdorimi — e-Aplikim OBP</title>
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0f1b2d;
+    --navy2:  #1a2e47;
+    --gold:   #d97706;
+    --gold2:  #f59e0b;
+    --blue:   #1e40af;
+    --blue2:  #3b82f6;
+    --green:  #15803d;
+    --green2: #22c55e;
+    --red:    #b91c1c;
+    --gray50: #f8fafc;
+    --gray100:#f1f5f9;
+    --gray200:#e2e8f0;
+    --gray400:#94a3b8;
+    --gray600:#475569;
+    --gray800:#1e293b;
+    --text:   #0f172a;
+    --radius: 8px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  html { font-size: 10pt; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: var(--text);
+    background: #fff;
+    line-height: 1.65;
+  }
+
+  /* ── Print rules ── */
+  @media print {
+    html { font-size: 9pt; }
+    .no-print { display: none !important; }
+    .page-break { page-break-after: always; }
+    .page-break-before { page-break-before: always; }
+    .avoid-break { page-break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+    .screenshot-box { border: 1.5px dashed #94a3b8 !important; }
+  }
+
+  /* ── Cover page ── */
+  .cover {
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(217,119,6,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(59,130,246,0.12) 0%, transparent 60%);
+  }
+  .cover-inner { position: relative; z-index: 1; max-width: 680px; }
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(217,119,6,0.15);
+    border: 1px solid rgba(217,119,6,0.35);
+    border-radius: 100px;
+    padding: 6px 18px;
+    color: var(--gold2);
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .cover-logo {
+    width: 72px; height: 72px;
+    background: var(--gold);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    font-size: 28pt;
+    font-weight: 900;
+    color: white;
+    box-shadow: 0 8px 32px rgba(217,119,6,0.4);
+  }
+  .cover h1 {
+    font-size: 28pt;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    letter-spacing: -.02em;
+  }
+  .cover h1 span { color: var(--gold2); }
+  .cover .cover-sub {
+    font-size: 12pt;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 48px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cover-chips {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+  }
+  .chip {
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: .03em;
+  }
+  .chip-admin  { background: rgba(30,64,175,0.25);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+  .chip-ak     { background: rgba(217,119,6,0.2);   color: var(--gold2); border: 1px solid rgba(217,119,6,0.35); }
+  .chip-opb    { background: rgba(21,128,61,0.2);   color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+  .cover-meta {
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 24px;
+    text-align: left;
+  }
+  .cover-meta-item label { display: block; font-size: 7.5pt; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+  .cover-meta-item span  { font-size: 9.5pt; color: rgba(255,255,255,0.85); font-weight: 500; }
+
+  /* ── TOC ── */
+  .toc-page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 70px 48px;
+  }
+  .toc-page h2 { font-size: 20pt; font-weight: 800; color: var(--navy); margin-bottom: 36px; }
+  .toc-section { margin-bottom: 28px; }
+  .toc-role {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11.5pt;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray200);
+  }
+  .toc-role-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .toc-items { list-style: none; padding-left: 20px; }
+  .toc-items li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 9.5pt;
+    color: var(--gray600);
+  }
+  .toc-items li::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px dotted var(--gray200);
+    margin: 0 8px;
+  }
+  .toc-items li span:last-child { color: var(--gray400); font-size: 8.5pt; }
+
+  /* ── Content layout ── */
+  .content-page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 60px 48px;
+  }
+
+  /* ── Role header ── */
+  .role-header {
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .role-header-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22pt;
+    flex-shrink: 0;
+  }
+  .role-header-text h2 { font-size: 18pt; font-weight: 800; margin-bottom: 6px; }
+  .role-header-text p  { font-size: 9.5pt; line-height: 1.6; opacity: .85; }
+
+  .rh-admin  { background: linear-gradient(135deg,#1e3a8a,#1e40af); color:#fff; }
+  .rh-ak     { background: linear-gradient(135deg,#92400e,#b45309); color:#fff; }
+  .rh-opb    { background: linear-gradient(135deg,#14532d,#166534); color:#fff; }
+
+  /* ── Section headings ── */
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #fff;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  h3.step-heading {
+    display: flex;
+    align-items: center;
+    font-size: 12pt;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 32px 0 14px;
+  }
+  h4.sub-heading {
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--gray800);
+    margin: 20px 0 8px;
+    padding-left: 4px;
+    border-left: 3px solid var(--gray200);
+    padding-left: 10px;
+  }
+
+  /* ── Steps list ── */
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    margin: 12px 0 20px;
+  }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    align-items: flex-start;
+  }
+  .steps li::before {
+    content: counter(step);
+    min-width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--gray100);
+    border: 1.5px solid var(--gray200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: var(--gray600);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Bullet list ── */
+  .bullets { list-style: none; margin: 8px 0 16px; padding: 0; }
+  .bullets li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    margin-bottom: 6px;
+    color: var(--gray600);
+  }
+  .bullets li::before {
+    content: '•';
+    color: var(--gold);
+    font-size: 12pt;
+    line-height: 1.2;
+    flex-shrink: 0;
+  }
+
+  /* ── Screenshot box ── */
+  .screenshot-box {
+    border: 2px dashed var(--gray200);
+    border-radius: var(--radius);
+    background: var(--gray50);
+    padding: 0;
+    margin: 16px 0 24px;
+    overflow: hidden;
+  }
+  .screenshot-label {
+    background: var(--gray100);
+    border-bottom: 1px solid var(--gray200);
+    padding: 8px 16px;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--gray400);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .screenshot-area {
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 8px;
+  }
+  .screenshot-icon { font-size: 24pt; opacity: .25; }
+  .screenshot-desc {
+    font-size: 9pt;
+    color: var(--gray400);
+    text-align: center;
+    max-width: 400px;
+    line-height: 1.55;
+  }
+  .screenshot-caption {
+    background: var(--gray100);
+    border-top: 1px solid var(--gray200);
+    padding: 6px 16px;
+    font-size: 7.5pt;
+    color: var(--gray400);
+    font-style: italic;
+  }
+
+  /* ── Info / warning / tip boxes ── */
+  .callout {
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 9pt;
+    line-height: 1.6;
+  }
+  .callout-icon { font-size: 13pt; flex-shrink: 0; margin-top: 1px; }
+  .callout-info    { background: #eff6ff; border-left: 3px solid #3b82f6; color: #1e3a8a; }
+  .callout-warn    { background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
+  .callout-success { background: #f0fdf4; border-left: 3px solid #22c55e; color: #14532d; }
+  .callout-danger  { background: #fff1f2; border-left: 3px solid #f43f5e; color: #881337; }
+  .callout strong  { display: block; margin-bottom: 3px; font-size: 9.5pt; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+  .badge-draft    { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+  .badge-pdf      { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .badge-signed   { background:#fdf4ff; color:#7e22ce; border:1px solid #e9d5ff; }
+  .badge-submitted{ background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+  .badge-archived { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
+
+  /* ── Workflow diagram ── */
+  .workflow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0 28px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .wf-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .wf-box {
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 8pt;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+    line-height: 1.3;
+  }
+  .wf-arrow {
+    font-size: 14pt;
+    color: var(--gray400);
+    padding: 0 2px;
+    margin-top: -8px;
+  }
+  .wf-role { font-size: 7pt; color: var(--gray400); font-weight: 500; }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 9pt; }
+  th {
+    background: var(--gray100);
+    color: var(--gray800);
+    font-weight: 700;
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--gray200);
+    font-size: 8.5pt;
+    letter-spacing: .02em;
+  }
+  td {
+    padding: 9px 14px;
+    border: 1px solid var(--gray200);
+    color: var(--gray600);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--gray50); }
+
+  /* ── Field labels ── */
+  .field-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; font-size: 9pt; }
+  .field-name { font-weight: 600; color: var(--navy); min-width: 170px; flex-shrink: 0; }
+  .field-req  { color: var(--red); font-size: 8pt; }
+  .field-desc { color: var(--gray600); }
+
+  /* ── Key combination ── */
+  kbd {
+    background: var(--gray100);
+    border: 1px solid var(--gray200);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-family: monospace;
+    font-size: 8.5pt;
+    color: var(--gray800);
+    box-shadow: 0 1px 0 var(--gray200);
+  }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid var(--gray200); margin: 36px 0; }
+
+  /* ── Footer ── */
+  .page-footer {
+    border-top: 1px solid var(--gray200);
+    padding: 20px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 780px;
+    margin: 0 auto;
+    font-size: 8pt;
+    color: var(--gray400);
+  }
+  @media print {
+    .page-footer { position: running(footer); }
+    @page { margin: 18mm 18mm 22mm; @bottom-center { content: element(footer); } }
+  }
+
+  /* ── Utility ── */
+  p { margin-bottom: 10px; font-size: 9.5pt; color: var(--gray600); }
+  strong { color: var(--gray800); }
+  .mt-sm { margin-top: 10px; }
+  .mt-md { margin-top: 20px; }
+  .text-sm { font-size: 8.5pt; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card {
+    border: 1px solid var(--gray200);
+    border-radius: var(--radius);
+    padding: 16px;
+    background: var(--gray50);
+  }
+  .card h5 { font-size: 9.5pt; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     COVER PAGE
+═══════════════════════════════════════════ -->
+<div class="cover page-break">
+  <div class="cover-inner">
+    <div class="cover-badge">📋 Dokumentacion Zyrtar</div>
+    <div class="cover-logo">e</div>
+    <h1>Manual Përdorimi<br><span>e-Aplikim</span></h1>
+    <p class="cover-sub">
+      Platformë elektronike për menaxhimin e formularëve të prokurimit publik
+      ndërmjet Autoriteteve Kontraktore dhe Zyrës së Pranimit të Dokumenteve (OBP).
+    </p>
+    <div class="cover-chips">
+      <span class="chip chip-admin">👤 Super Administrator</span>
+      <span class="chip chip-ak">🏛️ Autoritet Kontraktor</span>
+      <span class="chip chip-opb">📂 Operator OBP</span>
+    </div>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <label>Versioni</label>
+        <span>v1.0.0 — 2026</span>
+      </div>
+      <div class="cover-meta-item">
+        <label>Gjuha</label>
+        <span>Shqip (sq-AL)</span>
+      </div>
+      <div class="cover-meta-item">
+        <label>Statusi</label>
+        <span>Zyrtar · I konfidencialshëm</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TABLE OF CONTENTS
+═══════════════════════════════════════════ -->
+<div class="toc-page page-break">
+  <h2>Tabela e Përmbajtjes</h2>
+
+  <div class="toc-section">
+    <div class="toc-role">
+      <div class="toc-role-dot" style="background:#3b82f6"></div>
+      Kapitulli 1 — Hyrje & Sistemi
+    </div>
+    <ul class="toc-items">
+      <li><span>1.1 — Rreth platformës e-Aplikim</span><span></span><span>4</span></li>
+      <li><span>1.2 — Rolet dhe kompetencat</span><span></span><span>4</span></li>
+      <li><span>1.3 — Rrjedha e punës (workflow)</span><span></span><span>5</span></li>
+      <li><span>1.4 — Hyrja në sistem (Login)</span><span></span><span>5</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-role">
+      <div class="toc-role-dot" style="background:#b45309"></div>
+      Kapitulli 2 — Autoritet Kontraktor (AK)
+    </div>
+    <ul class="toc-items">
+      <li><span>2.1 — Paneli kryesor</span><span></span><span>7</span></li>
+      <li><span>2.2 — Krijimi i formularit të ri (SHTOJCA 2)</span><span></span><span>7</span></li>
+      <li><span>2.3 — Plotësimi i fushave</span><span></span><span>8</span></li>
+      <li><span>2.4 — Gjenerimi i PDF-it</span><span></span><span>9</span></li>
+      <li><span>2.5 — Ngarkim i dokumentit të firmosur</span><span></span><span>10</span></li>
+      <li><span>2.6 — Dorëzimi tek OBP</span><span></span><span>11</span></li>
+      <li><span>2.7 — Gjurmimi i statusit</span><span></span><span>11</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-role">
+      <div class="toc-role-dot" style="background:#15803d"></div>
+      Kapitulli 3 — Operator OBP
+    </div>
+    <ul class="toc-items">
+      <li><span>3.1 — Paneli kryesor OBP</span><span></span><span>13</span></li>
+      <li><span>3.2 — Formularat e dorëzuara</span><span></span><span>13</span></li>
+      <li><span>3.3 — Shikimi dhe shkarkimi i dokumenteve</span><span></span><span>14</span></li>
+      <li><span>3.4 — Autoritetet Kontraktore</span><span></span><span>15</span></li>
+      <li><span>3.5 — Arkivimi</span><span></span><span>15</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-role">
+      <div class="toc-role-dot" style="background:#1e40af"></div>
+      Kapitulli 4 — Super Administrator
+    </div>
+    <ul class="toc-items">
+      <li><span>4.1 — Pasqyra e sistemit</span><span></span><span>17</span></li>
+      <li><span>4.2 — Menaxhimi i institucioneve</span><span></span><span>17</span></li>
+      <li><span>4.3 — Shtimi i Autoritetit Kontraktor</span><span></span><span>18</span></li>
+      <li><span>4.4 — Shtimi i Operatorit OBP</span><span></span><span>19</span></li>
+      <li><span>4.5 — Aktivizimi / Çaktivizimi i llogarive</span><span></span><span>19</span></li>
+      <li><span>4.6 — Pasqyra teknike e sistemit</span><span></span><span>20</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <div class="toc-role">
+      <div class="toc-role-dot" style="background:#64748b"></div>
+      Kapitulli 5 — Pyetje të Shpeshta & Zgjidhje Problemesh
+    </div>
+    <ul class="toc-items">
+      <li><span>5.1 — Pyetje të shpeshta (FAQ)</span><span></span><span>21</span></li>
+      <li><span>5.2 — Mesazhe gabimi të zakonshme</span><span></span><span>22</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     KAPITULLI 1 — HYRJE
+═══════════════════════════════════════════ -->
+<div class="content-page page-break-before">
+
+  <div style="border-left:4px solid #3b82f6; padding-left:16px; margin-bottom:36px;">
+    <div style="font-size:9pt;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Kapitulli 1</div>
+    <h2 style="font-size:20pt;font-weight:800;color:var(--navy);margin-bottom:8px;">Hyrje &amp; Sistemi</h2>
+    <p style="margin:0;color:var(--gray600);">Njohja me platformën, rolet dhe rrjedhën e punës.</p>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#3b82f6;">1.1</span>
+    Rreth platformës e-Aplikim
+  </h3>
+  <p>
+    <strong>e-Aplikim</strong> është një platformë elektronike që mundëson menaxhimin dixhital të
+    formularëve të prokurimit publik — specifikisht <em>SHTOJCA 2: Modeli i dokumentit për planifikimin e prokurimit</em>.
+    Platforma eliminon proceset manuale me letër duke siguruar gjurmueshmëri, transparencë dhe ruajtje të
+    sigurt të të gjithë dokumentacionit.
+  </p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div>
+      <strong>Qëllimi kryesor</strong>
+      Autoritetet Kontraktore (bashki, ministri, agjenci etj.) plotësojnë formularin online, gjenerojnë PDF-in zyrtar,
+      e firmosen fizikisht dhe e ngarkojnë në sistem — më pas e dergon elektronikisht në OBP.
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#3b82f6;">1.2</span>
+    Rolet dhe kompetencat
+  </h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Roli</th>
+        <th>Emërtimi teknik</th>
+        <th>Kompetencat kryesore</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Autoritet Kontraktor</strong></td>
+        <td><kbd>AK</kbd></td>
+        <td>Krijon formularë, gjeneron PDF, ngarkon dokumente të firmosura, dorëzon tek OBP</td>
+      </tr>
+      <tr>
+        <td><strong>Operator OBP</strong></td>
+        <td><kbd>OPB</kbd></td>
+        <td>Shikon dhe shkarkon formularet e dorëzuara, arkivon, sheh listën e autoriteteve</td>
+      </tr>
+      <tr>
+        <td><strong>Super Administrator</strong></td>
+        <td><kbd>ADMIN</kbd></td>
+        <td>Menaxhon përdoruesit (shton/çaktivizon), regjistron institucione, monitoron sistemin</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#3b82f6;">1.3</span>
+    Rrjedha e punës (Workflow)
+  </h3>
+  <p>Çdo formular kalon nëpër pesë faza të detyrueshme:</p>
+
+  <div class="workflow avoid-break">
+    <div class="wf-step">
+      <div class="wf-box badge-draft" style="background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;">📝<br>Draft</div>
+      <div class="wf-role">AK shkruan</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-box badge-pdf" style="background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;">📄<br>PDF i gjeneruar</div>
+      <div class="wf-role">AK gjeneron</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-box" style="background:#fdf4ff;border:1.5px solid #e9d5ff;color:#7e22ce;">✍️<br>I firmosur</div>
+      <div class="wf-role">AK ngarkon</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-box" style="background:#f0fdf4;border:1.5px solid #bbf7d0;color:#15803d;">📬<br>Dorëzuar OBP</div>
+      <div class="wf-role">AK dërgon</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-box" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;">🗄️<br>Arkivuar</div>
+      <div class="wf-role">OBP arkivon</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div>
+      <strong>Statusi është i pandryshushëm prapa</strong>
+      Pasi formulari kalon në fazën tjetër, nuk mund të kthehet mbrapa. Sigurohuni që të dhënat
+      janë të sakta para se të vazhdoni me fazën tjetër.
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#3b82f6;">1.4</span>
+    Hyrja në sistem (Login)
+  </h3>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Faqja e hyrjes</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">🔐</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Faqja e Login-it]</strong><br>
+        Shfaqet logo e platformës "e-Aplikim", fusha e email-it dhe fjalëkalimit,
+        butoni "Hyr në sistem" dhe linku "Harrova fjalëkalimin".
+        Në fund shfaqen dy butonë të shpejtë për demo (AK dhe OPB).
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 1.1 — Faqja e hyrjes tek localhost:8080/login</div>
+  </div>
+
+  <h4 class="sub-heading">Si të hyni në sistem</h4>
+  <ol class="steps">
+    <li>Hapni shfletuesin dhe shkoni tek adresa e platformës (p.sh. <kbd>localhost:8080</kbd>).</li>
+    <li>Shkruani <strong>emailin zyrtar</strong> të dhënë nga administratori.</li>
+    <li>Shkruani <strong>fjalëkalimin</strong> fillestar të dhënë nga administratori.</li>
+    <li>Klikoni butonin <strong>"Hyr në sistem"</strong>.</li>
+    <li>Sistemi ju ridrejton automatikisht te paneli sipas rolit tuaj.</li>
+  </ol>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">🔑</span>
+    <div>
+      <strong>Siguria e fjalëkalimit</strong>
+      Ndërroni fjalëkalimin fillestar menjëherë pas hyrjes së parë. Fjalëkalimi duhet të ketë
+      të paktën 8 karaktere dhe të përmbajë kombinim të shkronjave dhe numrave.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     KAPITULLI 2 — AUTORITET KONTRAKTOR
+═══════════════════════════════════════════ -->
+<div class="content-page page-break-before">
+
+  <div class="role-header rh-ak avoid-break">
+    <div class="role-header-icon" style="background:rgba(255,255,255,0.15);">🏛️</div>
+    <div class="role-header-text">
+      <h2>Kapitulli 2 — Autoritet Kontraktor (AK)</h2>
+      <p>
+        Ky kapitull u drejtohet punonjësve të institucioneve publike (bashki, ministri, agjenci)
+        që përdorin platformën për të plotësuar dhe dorëzuar formularë prokurimi.
+        Roli juaj fillon me krijimin e formularit dhe mbaron me dorëzimin tek OBP.
+      </p>
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.1</span>
+    Paneli kryesor (Dashboard)
+  </h3>
+  <p>Pas hyrjes, shfaqet paneli kryesor me statistika dhe lista e formularëve tuaj.</p>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Dashboard AK</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📊</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Paneli kryesor i AK-ut]</strong><br>
+        Shfaqet sidebar-i i errët majtas me ikonat e navigimit.
+        Sipër djathtas emri i përdoruesit dhe institucioni (p.sh. "Blerina Hoxha — Aplikues").
+        Kartela me numrat: total formularë, draft, të dërguar, të arkivuara.
+        Lista e formularëve të fundit me status dhe datë.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 2.1 — Dashboard kryesor pas hyrjes si AK</div>
+  </div>
+
+  <h4 class="sub-heading">Navigimi</h4>
+  <ul class="bullets">
+    <li><strong>📋 Formularet e mia</strong> — lista e të gjithë formularëve të krijuar</li>
+    <li><strong>➕ Krijo formular</strong> — hap formularin e ri SHTOJCA 2</li>
+    <li><strong>📤 Të dërguar tek OBP</strong> — formularet e dorëzuara</li>
+    <li><strong>🔔 Njoftime</strong> — ikona e ziles për njoftime</li>
+  </ul>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.2</span>
+    Krijimi i formularit të ri
+  </h3>
+
+  <ol class="steps">
+    <li>Klikoni <strong>"Krijo formular të ri"</strong> në sidebar ose butonin "+" në krye të listës.</li>
+    <li>Sistemi hap automatikisht formularin <strong>SHTOJCA 2 — Modeli i dokumentit për planifikimin e prokurimit</strong>.</li>
+    <li>Caktohet automatikisht numri unik i formularit: <kbd>APL-2026-XXXX</kbd>.</li>
+    <li>Formulari ruhet fillimisht me status <span class="badge badge-draft">● Draft</span>.</li>
+  </ol>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Formulari i ri (bosh)</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📝</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Formulari SHTOJCA 2 i hapur]</strong><br>
+        Titulli "Modeli i dokumentit për planifikimin e prokurimit".
+        Butona sipër djathtas: "Kthehu te lista", "Ruaj Draft" (i çelët), "Gjenero PDF" (i artë).
+        Formulari i bardhë i ndarë në seksione: të dhënat personale, informacioni i prokurimit.
+        Teksti SHTOJCA 2 i dukshëm brenda formularit.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 2.2 — Formulari SHTOJCA 2 i ri (status: Draft)</div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.3</span>
+    Plotësimi i fushave
+  </h3>
+  <p>Formulari SHTOJCA 2 ndahet në dy seksione kryesore:</p>
+
+  <h4 class="sub-heading">Seksioni A — Të dhënat e aplikuesit</h4>
+  <div class="card avoid-break">
+    <div class="field-row">
+      <span class="field-name">Emri <span class="field-req">*</span></span>
+      <span class="field-desc">Emri i personit përgjegjës për dokumentin</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Mbiemri <span class="field-req">*</span></span>
+      <span class="field-desc">Mbiemri i personit përgjegjës</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Atësia <span class="field-req">*</span></span>
+      <span class="field-desc">Emri i atit</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">NID (NIPT/ID) <span class="field-req">*</span></span>
+      <span class="field-desc">Numri identifikues personal i institucionit</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Datëlindja <span class="field-req">*</span></span>
+      <span class="field-desc">Zgjidhni nga kalendarit (format: DD/MM/YYYY)</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Email <span class="field-req">*</span></span>
+      <span class="field-desc">Email-i zyrtar i kontaktit</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Telefon</span>
+      <span class="field-desc">Numri i telefonit të kontaktit (opsional)</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Adresa <span class="field-req">*</span></span>
+      <span class="field-desc">Adresa e institucionit</span>
+    </div>
+  </div>
+
+  <h4 class="sub-heading">Seksioni B — Informacioni i prokurimit</h4>
+  <div class="card avoid-break">
+    <div class="field-row">
+      <span class="field-name">Arsyeja <span class="field-req">*</span></span>
+      <span class="field-desc">Arsyeja e aplikimit / qëllimi i prokurimit</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Emri i formularit <span class="field-req">*</span></span>
+      <span class="field-desc">Titulli ose përshkrimi i shkurtër i dokumentit</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Të dhënat e dokumentit</span>
+      <span class="field-desc">Seksioni i detajuar i SHTOJCA 2 (fushat specifike të prokurimit)</span>
+    </div>
+  </div>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">💾</span>
+    <div>
+      <strong>Ruajtja automatike</strong>
+      Formulari mund të ruhet si Draft në çdo moment duke klikuar <strong>"Ruaj Draft"</strong>.
+      Mund të dilni dhe të riktheheni më vonë — të dhënat nuk humbasin.
+    </div>
+  </div>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Formulari i plotësuar</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">✏️</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Formulari SHTOJCA 2 me fushat e plotësuara]</strong><br>
+        Të gjitha fushat e seksionit A dhe B janë plotësuar.
+        Butoni "Gjenero PDF" është aktiv (ngjyrë portokalli).
+        Formulari tregon pamje live të dokumentit të formatuar.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 2.3 — Formulari i plotësuar gati për gjenerim PDF</div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.4</span>
+    Gjenerimi i PDF-it
+  </h3>
+  <p>
+    Pasi keni plotësuar të gjitha fushat e detyrueshme, mund të gjeneroni PDF-in zyrtar.
+    Ky PDF do të printojë dokumentin në formatimin standard shtetëror të SHTOJCA 2.
+  </p>
+
+  <ol class="steps">
+    <li>Kontrolloni që të gjitha fushat e shënuara me <span style="color:var(--red);font-weight:700;">*</span> janë plotësuar.</li>
+    <li>Klikoni butonin <strong>"Gjenero PDF"</strong> (portokalli, sipër djathtas).</li>
+    <li>Sistemi gjeneron PDF-in dhe e shfaq para jush për rishikim.</li>
+    <li>Statusi i formularit ndryshon automatikisht në <span class="badge badge-pdf">📄 PDF i gjeneruar</span>.</li>
+    <li>Mund ta shkarkoni PDF-in me butonin <strong>"Shkarko PDF"</strong>.</li>
+  </ol>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — PDF i gjeneruar</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📄</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Faqja e detajeve të formularit pas gjenerimit të PDF]</strong><br>
+        Shfaqet parapamja e PDF-it brenda faqes.
+        Statusbari tregon "PDF i gjeneruar" me ngjyrë blu.
+        Butona: "Shkarko PDF", "Ngarko dokumentin e firmosur".
+        Afati i gjenerimit të PDF: data dhe ora.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 2.4 — PDF i gjeneruar me sukses (status: pdf_generated)</div>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div>
+      <strong>Rishikim i detyrueshëm</strong>
+      Para se të printoni dhe të firmosni dokumentin, lexojeni me kujdes PDF-in e gjeneruar
+      për të siguruar saktësinë e të gjitha të dhënave.
+      Nëse gjeni gabime, mund të modifikoni formularin dhe të rigjenroni PDF-in.
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.5</span>
+    Ngarkim i dokumentit të firmosur
+  </h3>
+  <p>
+    Pas gjenerimit, duhet të printoni PDF-in, ta firmosni dhe stamponi fizikisht,
+    pastaj ta skanoni dhe ta ngarkoni sërish në sistem.
+  </p>
+
+  <ol class="steps">
+    <li>Shkarkoni PDF-in e gjeneruar me butonin <strong>"Shkarko PDF"</strong>.</li>
+    <li><strong>Printoni</strong> dokumentin.</li>
+    <li><strong>Firmosni dhe stamponi</strong> dokumentin fizikisht nga personi përgjegjës.</li>
+    <li><strong>Skanoni</strong> dokumentin e firmosur (format PDF ose JPG, max 10 MB).</li>
+    <li>Kthehuni te formulari në sistem dhe klikoni <strong>"Ngarko dokumentin e firmosur"</strong>.</li>
+    <li>Zgjidhni skedarin e skanuar nga kompjuteri juaj.</li>
+    <li>Klikoni <strong>"Konfirmo ngarkimin"</strong>.</li>
+    <li>Statusi ndryshon në <span class="badge" style="background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;">✍️ I firmosur / i ngarkuar</span>.</li>
+  </ol>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Ngarkimi i dokumentit të firmosur</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📤</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Dialog / zona e ngarkimit të dokumentit]</strong><br>
+        Zona me bord me vija (drag &amp; drop area).
+        Tekst: "Tërhiq skedarin këtu ose kliko për të zgjedhur".
+        Tipi i lejuar: PDF, JPG — Madhësia max: 10 MB.
+        Butoni "Konfirmo ngarkimin" aktiv pas zgjedhjes së skedarit.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 2.5 — Zona e ngarkimit të dokumentit të firmosur</div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div>
+      <strong>Formati dhe madhësia</strong>
+      Sistemi pranon vetëm skedarë <strong>PDF ose JPG/PNG</strong> me madhësi maksimale <strong>10 MB</strong>.
+      Skedari duhet të jetë i qartë dhe i lexueshëm — OBP-ja do ta shqyrtojë dokumentin fizik.
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.6</span>
+    Dorëzimi tek OBP
+  </h3>
+  <p>Pasi dokumenti i firmosur është ngarkuar, mund të dorëzoni formularit tek OBP-ja.</p>
+
+  <ol class="steps">
+    <li>Hapni formularin me status <span class="badge" style="background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;">✍️ I firmosur</span>.</li>
+    <li>Rishikoni edhe njëherë të gjitha të dhënat.</li>
+    <li>Klikoni butonin <strong>"Dërgo tek OBP"</strong>.</li>
+    <li>Konfirmoni dorëzimin në dialog-in që shfaqet.</li>
+    <li>Statusi ndryshon automatikisht në <span class="badge badge-submitted">📬 Dorëzuar OBP</span>.</li>
+    <li>OBP-ja njoftohet automatikisht për formularin e ri të dorëzuar.</li>
+  </ol>
+
+  <div class="callout callout-danger">
+    <span class="callout-icon">🚫</span>
+    <div>
+      <strong>Veprim i pakthyeshëm</strong>
+      Pasi formulari dorëzohet tek OBP-ja, <strong>nuk mund të modifikohet ose tërhiqet</strong>.
+      Nëse nevojitet korrigjim, kontaktoni OBP-në direkt.
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#b45309;">2.7</span>
+    Gjurmimi i statusit
+  </h3>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Lista e formularëve me statuset</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📋</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Faqja "Formularet e mia" me listën]</strong><br>
+        Tabela me kolonat: Nr. (APL-2026-0001), Titulli, Institucioni, Status, Data e krijimit, Veprime.
+        Filtrat sipër: "Të gjithë", "Draft", "PDF i gjeneruar", "I firmosur", "Dorëzuar OPB", "Arkivuar".
+        Butonat e veprimit: ikona shiko, shkarko, edito.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 2.6 — Lista e formularëve me filtrim sipas statusit</div>
+  </div>
+
+  <table class="avoid-break">
+    <thead>
+      <tr><th>Statusi</th><th>Kuptimi</th><th>Veprimet e disponueshme</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-draft">● Draft</span></td>
+        <td>Formulari është duke u plotësuar</td>
+        <td>Edito, Ruaj, Gjenero PDF</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-pdf">📄 PDF i gjeneruar</span></td>
+        <td>PDF-i është gjeneruar dhe gati për firmë</td>
+        <td>Shkarko PDF, Ngarko firmosur, Rigjenero</td>
+      </tr>
+      <tr>
+        <td><span class="badge" style="background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;">✍️ I firmosur</span></td>
+        <td>Dokumenti i firmosur është ngarkuar</td>
+        <td>Dërgo tek OBP, Shkarko PDF</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-submitted">📬 Dorëzuar OPB</span></td>
+        <td>OBP-ja e ka pranuar formularin</td>
+        <td>Shiko vetëm, Shkarko PDF</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-archived">🗄️ Arkivuar</span></td>
+        <td>Formulari është arkivuar nga OBP-ja</td>
+        <td>Shiko vetëm, Shkarko PDF</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════
+     KAPITULLI 3 — OPERATOR OBP
+═══════════════════════════════════════════ -->
+<div class="content-page page-break-before">
+
+  <div class="role-header rh-opb avoid-break">
+    <div class="role-header-icon" style="background:rgba(255,255,255,0.15);">📂</div>
+    <div class="role-header-text">
+      <h2>Kapitulli 3 — Operator OBP</h2>
+      <p>
+        Ky kapitull u drejtohet punonjësve të Zyrës së Pranimit të Dokumenteve (OBP).
+        Roli juaj është pranimi, shqyrtimi dhe arkivimi i formularëve të dorëzuar nga Autoritetet Kontraktore.
+        Jeni lidhja kryesore ndërmjet institucioneve dhe sistemit qendror.
+      </p>
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#15803d;">3.1</span>
+    Paneli kryesor OBP
+  </h3>
+  <p>
+    Pas hyrjes si Operator OBP, shfaqet paneli i dedikuar me statistika të formularëve
+    të pranuar dhe gjendjes aktuale.
+  </p>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Dashboard OBP</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📊</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Paneli kryesor i Operatorit OBP]</strong><br>
+        Kartela me statistikat: "Formulare të reja" (të dorëzuara sot),
+        "Gjithsej të pranuara", "Të arkivuara".
+        Lista e fundit e formularëve të dorëzuar me autoritetin dhe datën.
+        Sidebar-i tregon ikonat: Paneli, Formularet e pranuara, Autoritetet.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 3.1 — Paneli kryesor i Operatorit OBP</div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#15803d;">3.2</span>
+    Formularet e dorëzuara
+  </h3>
+  <p>
+    Seksioni <strong>"Formulare të pranuara"</strong> liston të gjitha formularet me status
+    <span class="badge badge-submitted">📬 Dorëzuar OPB</span> dhe
+    <span class="badge badge-archived">🗄️ Arkivuar</span>.
+  </p>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Lista e formularëve të dorëzuar</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📬</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Faqja "Formulare të pranuara" tek OBP]</strong><br>
+        Tabela me kolonat: Nr. formulari (APL-2026-XXXX), Autoriteti Kontraktor,
+        Data e dorëzimit, Statusi, Veprimet.
+        Filtrat: "Të gjithë", "Të reja", "Arkivuar".
+        Ikona blu e numrit të formularëve të palexuar.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 3.2 — Lista e formularëve tek operatori OBP</div>
+  </div>
+
+  <h4 class="sub-heading">Hapja e formularit për shqyrtim</h4>
+  <ol class="steps">
+    <li>Klikoni mbi numrin e formularit (p.sh. <kbd>APL-2026-0003</kbd>) ose ikonën "Shiko".</li>
+    <li>Shfaqen të gjitha të dhënat e formularit: aplikuesi, institucioni, arsyeja, data.</li>
+    <li>Klikoni <strong>"Shiko PDF-in e gjeneruar"</strong> për të parë dokumentin origjinal.</li>
+    <li>Klikoni <strong>"Shiko dokumentin e firmosur"</strong> për të parë dokumentin me firmë.</li>
+    <li>Sistemi regjistron automatikisht datën dhe orën e shikimit tuaj.</li>
+  </ol>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#15803d;">3.3</span>
+    Shikimi dhe shkarkimi i dokumenteve
+  </h3>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Detajet e formularit tek OBP</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">🔍</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Faqja e detajeve të formularit nga këndvështrimi OBP]</strong><br>
+        Informacioni i formularit: numri APL, institucioni, data e dorëzimit.
+        Seksioni "Dokumentet": dy karta — "PDF i gjeneruar" dhe "Dokument i firmosur".
+        Butona: "Shiko online", "Shkarko PDF" për secilin dokument.
+        Historia e aktivitetit: kur u shikua/shkarkua formulari.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 3.3 — Faqja e detajeve të formularit nga perspektiva OBP</div>
+  </div>
+
+  <div class="grid-2 avoid-break">
+    <div class="card">
+      <h5>📄 PDF i gjeneruar</h5>
+      <ul class="bullets">
+        <li>Dokumenti zyrtar i plotësuar nga AK-u</li>
+        <li>I gjeneruar automatikisht nga sistemi</li>
+        <li>Para firmëve dhe stampës</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>✍️ Dokument i firmosur</h5>
+      <ul class="bullets">
+        <li>Dokumenti i printuar, firmosur dhe skanuar</li>
+        <li>Kopja zyrtare ligjërisht e vlefshme</li>
+        <li>I ngarkuar nga AK-u</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#15803d;">3.4</span>
+    Autoritetet Kontraktore
+  </h3>
+  <p>
+    Seksioni <strong>"Autoritetet"</strong> shfaq listën e të gjitha institucioneve aktive të regjistruara
+    në platformë nga administratori.
+  </p>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Faqja Autoritetet</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">🏛️</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Faqja "Autoritetet Kontraktore" tek OBP]</strong><br>
+        Titull: "Autoritetet Kontraktore" + numri total.
+        Fushë kërkimi: "Kërko autoritet, qytet, lloj...".
+        Lista me karta: çdo kartë tregon emrin e institucionit, llojet (Bashki/Ministri),
+        qytetin, dhe numrin e formularëve të dorëzuar.
+        Nëse baza e të dhënave është bosh: mesazh "Asnjë autoritet i regjistruar".
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 3.4 — Lista e Autoriteteve Kontraktore</div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#15803d;">3.5</span>
+    Arkivimi i formularëve
+  </h3>
+  <p>
+    Pasi formulari është shqyrtuar dhe procesuar, Operatori OBP mund ta arkivizojë.
+  </p>
+
+  <ol class="steps">
+    <li>Hapni formularin me status <span class="badge badge-submitted">📬 Dorëzuar OPB</span>.</li>
+    <li>Verifikoni që të dy dokumentet (i gjeneruar dhe i firmosur) janë kontrolluar.</li>
+    <li>Klikoni butonin <strong>"Arkivizo"</strong>.</li>
+    <li>Formulari merr statusin <span class="badge badge-archived">🗄️ Arkivuar</span>.</li>
+    <li>AK-u njoftohet automatikisht se formulari u arkivua.</li>
+  </ol>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">🗄️</span>
+    <div>
+      <strong>Formularet e arkivuara</strong>
+      Formularet e arkivuara mbeten të aksesueshme dhe mund të shkarkohen në çdo kohë
+      por nuk mund të modifikohen. Arkivimi është veprim definitiv.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     KAPITULLI 4 — SUPER ADMINISTRATOR
+═══════════════════════════════════════════ -->
+<div class="content-page page-break-before">
+
+  <div class="role-header rh-admin avoid-break">
+    <div class="role-header-icon" style="background:rgba(255,255,255,0.15);">👤</div>
+    <div class="role-header-text">
+      <h2>Kapitulli 4 — Super Administrator</h2>
+      <p>
+        Ky kapitull u drejtohet administratorëve teknikë të platformës.
+        Super Administratori ka kontroll të plotë mbi sistemin: menaxhon
+        institucionet, krijon dhe deaktivizon llogaritë e përdoruesve,
+        dhe monitoron gjendjen teknike të platformës.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout callout-danger avoid-break">
+    <span class="callout-icon">🔐</span>
+    <div>
+      <strong>Akses i kufizuar</strong>
+      Paneli i administratorit është i aksesueshëm vetëm me llogari të tipit
+      <kbd>ADMIN</kbd>. Kredencialet e administratorit duhet të mbrohen rreptësisht
+      dhe të mos ndahen me persona të tjerë.
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#1e40af;">4.1</span>
+    Pasqyra e sistemit (Overview)
+  </h3>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Dashboard Admin</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">🖥️</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Paneli kryesor i Super Administratorit]</strong><br>
+        Karta statistikash: "Përdorues totalë", "Operatorë OBP", "Përdorues AK", "Aktivë".
+        Grafiku i gjendjes së sistemit: Storage, CPU, Memorie me progres-bar.
+        Kartela "Të dhëna teknike": versioni, uptime, rreshta DB, backup i fundit.
+        Butoni "Menaxho përdoruesit" dhe "Hap Sistemi & Storage".
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 4.1 — Paneli i Super Administratorit me statistika</div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#1e40af;">4.2</span>
+    Menaxhimi i institucioneve
+  </h3>
+  <p>
+    Para se të krijohen llogaritë AK, duhen regjistruar institucionet (Autoritetet Kontraktore)
+    në sistem. Çdo llogari AK lidhet me një institucion specifik.
+  </p>
+
+  <ol class="steps">
+    <li>Shkoni te <strong>Menaxho → Përdoruesit &amp; Institucionet</strong>.</li>
+    <li>Klikoni tab-in <strong>"Institucione"</strong>.</li>
+    <li>Klikoni butonin <strong>"+ Shto institucion"</strong> (sipër djathtas).</li>
+    <li>Plotësoni formularin e institucionit.</li>
+    <li>Klikoni <strong>"Shto institucionin"</strong> për të ruajtur.</li>
+  </ol>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Shtimi i institucionit</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">🏛️</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Formulari i shtimit të institucionit]</strong><br>
+        Karta me titull "Shto institucion të ri".
+        Fushat: Emri * (input tekst), Lloji (dropdown: Ministri / Njësi vendore / Agjenci...),
+        Qyteti/Adresa (input), Email institucional (input email), Telefon (input).
+        Butona: "Anulo" dhe "Shto institucionin" (i kaltër).
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 4.2 — Formulari i shtimit të Autoritetit Kontraktor</div>
+  </div>
+
+  <h4 class="sub-heading">Fushat e institucionit</h4>
+  <div class="card avoid-break">
+    <div class="field-row">
+      <span class="field-name">Emri i institucionit <span class="field-req">*</span></span>
+      <span class="field-desc">Emri zyrtar i plotë (p.sh. "Bashkia Tiranë")</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Lloji</span>
+      <span class="field-desc">Ministri / Njësi vendore / Agjenci qendrore / Institucion arsimor / Spital / Tjetër</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Qyteti / Adresa</span>
+      <span class="field-desc">Qyteti ose adresa e plotë (p.sh. "Tiranë")</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Email institucional</span>
+      <span class="field-desc">Email-i zyrtar i institucionit (p.sh. info@bashkia.gov.al)</span>
+    </div>
+    <div class="field-row">
+      <span class="field-name">Telefon</span>
+      <span class="field-desc">Numri i telefonit të institucionit (+355 4 ...)</span>
+    </div>
+  </div>
+
+  <h4 class="sub-heading">Editimi dhe çaktivizimi i institucioneve</h4>
+  <p>
+    Çdo institucion ekzistues mund të:
+  </p>
+  <ul class="bullets">
+    <li><strong>Edito (✏️)</strong> — Ndryshon emrin, llojin, adresën, emailin ose telefonin</li>
+    <li><strong>Çaktivizo/Aktivizo (⏻)</strong> — Institucioni çaktivizohet dhe nuk shfaqet te OBP ose në dropdown-at e AK-ut</li>
+    <li><strong>Fshi (🗑️)</strong> — Heq institucionin nga sistemi (vetëm nëse nuk ka forma të lidhura)</li>
+  </ul>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#1e40af;">4.3</span>
+    Shtimi i Autoritetit Kontraktor (AK)
+  </h3>
+  <p>
+    Pas regjistrimit të institucionit, krijoni llogarinë e punonjësit AK që do të operojë nën atë institucion.
+  </p>
+
+  <ol class="steps">
+    <li>Klikoni tab-in <strong>"Shto AK"</strong> te faqja e Përdoruesve.</li>
+    <li>Plotësoni <strong>Emër mbiemrin</strong> e punonjësit.</li>
+    <li>Plotësoni <strong>emailin zyrtar</strong> (do të jetë edhe username-i).</li>
+    <li>Zgjidhni <strong>Autoritetin Kontraktor</strong> nga dropdown-i (institucioni ekzistues).</li>
+    <li>Vendosni <strong>fjalëkalimin fillestar</strong> (minimum 8 karaktere).</li>
+    <li>Klikoni <strong>"Shto përdoruesin"</strong>.</li>
+    <li>Ndani kredencialet me punonjësin <strong>vetëm nëpërmjet kanaleve të sigurta</strong>.</li>
+  </ol>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Shtimi i AK-ut</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">👤</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Tab "Shto AK" i faqes Admin Përdorues]</strong><br>
+        Formulari me titull "Shto përdorues AK".
+        Fushat: Emër mbiemër, Email zyrtar, dropdown "Autoriteti Kontraktor *",
+        Fjalëkalim fillestar.
+        Nëse nuk ka institucione: paralajmërim me ngjyrë portokalli "Nuk ka institucione të regjistruara".
+        Butoni "Shto përdoruesin" i kaltër.
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 4.3 — Formulari i shtimit të llogarisë AK</div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">📋</span>
+    <div>
+      <strong>Rendi i detyrueshëm</strong>
+      Institucioni duhet të regjistrohet <strong>para</strong> llogarisë AK.
+      Nëse tab-i "Shto AK" tregon paralajmërim portokalli, filloni me tab-in "Institucione".
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#1e40af;">4.4</span>
+    Shtimi i Operatorit OBP
+  </h3>
+
+  <ol class="steps">
+    <li>Klikoni tab-in <strong>"Shto OPB"</strong>.</li>
+    <li>Plotësoni <strong>emër mbiemrin</strong> e operatorit.</li>
+    <li>Plotësoni <strong>emailin zyrtar</strong>.</li>
+    <li>Plotësoni <strong>njësinë OBP</strong> (parazgjedhja: "Zyra e Pranimit OBP").</li>
+    <li>Vendosni <strong>fjalëkalimin fillestar</strong>.</li>
+    <li>Klikoni <strong>"Shto përdoruesin"</strong>.</li>
+  </ol>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Shtimi i operatorit OBP</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">📂</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Tab "Shto OPB" i faqes Admin Përdorues]</strong><br>
+        Formulari me titull "Shto operator OBP".
+        Fushat: Emër mbiemër *, Email zyrtar *, Njësia OBP (pre-plotësuar),
+        Fjalëkalim fillestar *.
+        Butoni "Shto përdoruesin".
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 4.4 — Formulari i shtimit të Operatorit OBP</div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#1e40af;">4.5</span>
+    Aktivizimi / Çaktivizimi i llogarive
+  </h3>
+  <p>
+    Tab-i <strong>"Lista"</strong> shfaq të gjithë përdoruesit e sistemit.
+    Nga këtu mund të menaxhoni aksesimin e tyre.
+  </p>
+
+  <div class="screenshot-box avoid-break">
+    <div class="screenshot-label">📸 Screenshot — Lista e të gjithë përdoruesve</div>
+    <div class="screenshot-area">
+      <div class="screenshot-icon">👥</div>
+      <div class="screenshot-desc">
+        <strong>[SCREENSHOT: Tab "Lista" i faqes Admin Përdorues]</strong><br>
+        Fushë kërkimi dhe filtrat AK/OBP/Të gjithë.
+        Çdo rresht: avatar me iniciale, emri, email-i, institucioni, badge roli (AK/OPB),
+        badge statusi (Aktiv/Çaktivizuar).
+        Ikonat e veprimit: ⏻ (toggle aktiv), 🗑️ (fshi).
+      </div>
+    </div>
+    <div class="screenshot-caption">Fig. 4.5 — Lista e të gjithë përdoruesve me veprime</div>
+  </div>
+
+  <table class="avoid-break">
+    <thead>
+      <tr><th>Veprimi</th><th>Efekti</th><th>Kur përdoret</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>⏻ Çaktivizo</td>
+        <td>Llogaria bllokohet — përdoruesi nuk mund të hyjë</td>
+        <td>Punonjës i larguar / llogari e dyshimtë</td>
+      </tr>
+      <tr>
+        <td>⏻ Aktivizo</td>
+        <td>Llogaria rihapet — përdoruesi mund të hyjë sërish</td>
+        <td>Punonjës i kthyer / problem i zgjidhur</td>
+      </tr>
+      <tr>
+        <td>🗑️ Fshi</td>
+        <td>Llogaria fshihet përgjithmonë</td>
+        <td>Testim / llogari gabimisht e krijuar</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#1e40af;">4.6</span>
+    Pasqyra teknike e sistemit
+  </h3>
+  <p>
+    Faqja <strong>"Sistemi &amp; Storage"</strong> ofron monitorim të burimeve teknike të serverit.
+  </p>
+
+  <div class="grid-2 avoid-break">
+    <div class="card">
+      <h5>📦 Storage</h5>
+      <ul class="bullets">
+        <li>Kapaciteti total i diskut</li>
+        <li>Hapësira e përdorur / e lirë</li>
+        <li>Progres-bar me ngjyrë (jeshile/portokalli/kuqe)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>⚙️ CPU &amp; Memorie</h5>
+      <ul class="bullets">
+        <li>Ngarkesa aktuale e CPU-s</li>
+        <li>Memoria RAM e përdorur</li>
+        <li>Paralajmërim nëse kalon 85%</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>🗄️ Databaza</h5>
+      <ul class="bullets">
+        <li>Numri total i rreshtave</li>
+        <li>Backup-i i fundit</li>
+        <li>Gjendja: Operacional / Vëmendje / Kritik</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>🔄 Uptime</h5>
+      <ul class="bullets">
+        <li>Ditët e funksionimit pa ndërprerje</li>
+        <li>Versioni i platformës</li>
+        <li>Mjedisi (Production / Development)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     KAPITULLI 5 — FAQ & TROUBLESHOOTING
+═══════════════════════════════════════════ -->
+<div class="content-page page-break-before">
+
+  <div style="border-left:4px solid #64748b; padding-left:16px; margin-bottom:36px;">
+    <div style="font-size:9pt;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Kapitulli 5</div>
+    <h2 style="font-size:20pt;font-weight:800;color:var(--navy);margin-bottom:8px;">Pyetje të Shpeshta &amp; Zgjidhje Problemesh</h2>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#64748b;">5.1</span>
+    Pyetje të shpeshta (FAQ)
+  </h3>
+
+  <div class="avoid-break" style="margin-bottom:16px;">
+    <div style="background:var(--gray50);border:1px solid var(--gray200);border-radius:var(--radius);overflow:hidden;">
+
+      <div style="border-bottom:1px solid var(--gray200);padding:14px 18px;">
+        <p style="font-weight:700;color:var(--navy);margin-bottom:4px;">
+          ❓ Si mund të rigjeneroj PDF-in nëse kam bërë një gabim?
+        </p>
+        <p style="margin:0;font-size:9pt;">
+          Nëse formulari ka status <span class="badge badge-draft">Draft</span> ose
+          <span class="badge badge-pdf">PDF i gjeneruar</span>, mund të modifikoni fushat
+          dhe të klikoni sërish "Gjenero PDF". PDF-i i ri zëvendëson të mëparshmin automatikisht.
+          <strong>Nuk mund të modifikoni pasi formulari të jetë dorëzuar tek OBP-ja.</strong>
+        </p>
+      </div>
+
+      <div style="border-bottom:1px solid var(--gray200);padding:14px 18px;">
+        <p style="font-weight:700;color:var(--navy);margin-bottom:4px;">
+          ❓ Nuk mund të hyj në sistem — çfarë duhet të bëj?
+        </p>
+        <p style="margin:0;font-size:9pt;">
+          (1) Kontrolloni që email-i dhe fjalëkalimi janë të sakta. (2) Kontrolloni që kufrin Caps Lock
+          nuk është aktiv. (3) Nëse keni harruar fjalëkalimin, klikoni "Harrova fjalëkalimin".
+          (4) Nëse llogaria është çaktivizuar, kontaktoni administratorin.
+        </p>
+      </div>
+
+      <div style="border-bottom:1px solid var(--gray200);padding:14px 18px;">
+        <p style="font-weight:700;color:var(--navy);margin-bottom:4px;">
+          ❓ Si njoftohet OBP-ja kur dërgoj formularin?
+        </p>
+        <p style="margin:0;font-size:9pt;">
+          Pasi klikoni "Dërgo tek OBP", sistemi gjeneron automatikisht një njoftim për
+          të gjithë operatorët OBP të sistemit. Ata e shohin formularin tuaj menjëherë
+          te lista "Formulare të dorëzuara".
+        </p>
+      </div>
+
+      <div style="border-bottom:1px solid var(--gray200);padding:14px 18px;">
+        <p style="font-weight:700;color:var(--navy);margin-bottom:4px;">
+          ❓ Si Administrator, si shtoj Autoritetin Kontraktor hapi pas hapi?
+        </p>
+        <p style="margin:0;font-size:9pt;">
+          <strong>Rendi i saktë:</strong><br>
+          1. Tab "Institucione" → Shto institucionin (Bashkia X, lloji, qyteti)<br>
+          2. Tab "Shto AK" → Krijo llogarinë, zgjidh institucionin nga dropdown<br>
+          3. Ndaj kredencialet (email + fjalëkalim fillestar) me punonjësin
+        </p>
+      </div>
+
+      <div style="border-bottom:1px solid var(--gray200);padding:14px 18px;">
+        <p style="font-weight:700;color:var(--navy);margin-bottom:4px;">
+          ❓ Pse formulari im nuk shfaqet te OBP-ja?
+        </p>
+        <p style="margin:0;font-size:9pt;">
+          OBP-ja sheh vetëm formularet me status <span class="badge badge-submitted">📬 Dorëzuar OPB</span>.
+          Kontrolloni statusin e formularit tuaj. Nëse është ende "I firmosur", duhet të klikoni
+          "Dërgo tek OBP" për ta dorëzuar.
+        </p>
+      </div>
+
+      <div style="padding:14px 18px;">
+        <p style="font-weight:700;color:var(--navy);margin-bottom:4px;">
+          ❓ A mund të kemi disa punonjës AK nga i njëjti institucion?
+        </p>
+        <p style="margin:0;font-size:9pt;">
+          Po. Administratori mund të krijojë llogari të shumta AK për i njëjtin institucion.
+          Çdo punonjës do të ketë llogarinë e tij dhe do të menaxhojë vetëm formularet
+          që ai/ajo ka krijuar.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <h3 class="step-heading">
+    <span class="section-num" style="background:#64748b;">5.2</span>
+    Mesazhe gabimi të zakonshme
+  </h3>
+
+  <table class="avoid-break">
+    <thead>
+      <tr>
+        <th>Mesazhi i gabimit</th>
+        <th>Shkaku i mundshëm</th>
+        <th>Zgjidhja</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>"Email ose fjalëkalim i pasaktë"</strong></td>
+        <td>Kredenciale të gabuara ose llogari e çaktivizuar</td>
+        <td>Kontrolloni email-in, risetoni fjalëkalimin ose kontaktoni admin-in</td>
+      </tr>
+      <tr>
+        <td><strong>"Plotëso të gjitha fushat e detyrueshme"</strong></td>
+        <td>Fushat me * janë lënë bosh</td>
+        <td>Plotësoni të gjitha fushat me (*) para se të vazhdoni</td>
+      </tr>
+      <tr>
+        <td><strong>"Fjalëkalimi duhet të ketë së paku 8 karaktere"</strong></td>
+        <td>Fjalëkalimi është shumë i shkurtër</td>
+        <td>Vendosni fjalëkalim me 8+ karaktere (letra+numra)</td>
+      </tr>
+      <tr>
+        <td><strong>"Email i pavlefshëm"</strong></td>
+        <td>Formati i email-it është i pasaktë</td>
+        <td>Sigurohuni që email-i ka format: emri@domain.al</td>
+      </tr>
+      <tr>
+        <td><strong>"Skedari tejkalon 10 MB"</strong></td>
+        <td>Dokumenti i skanuar është shumë i madh</td>
+        <td>Kompresoni PDF-in ose skanoni me rezolucion më të ulët (150–200 DPI)</td>
+      </tr>
+      <tr>
+        <td><strong>"Nuk ka institucione të regjistruara"</strong></td>
+        <td>Admin-i nuk ka shtuar ende institucione</td>
+        <td>Admin-i duhet të shtojë institucionin te tab-i "Institucione" fillimisht</td>
+      </tr>
+      <tr>
+        <td><strong>"Ndodhi një gabim"</strong></td>
+        <td>Problem i serverit ose lidhjes me internetin</td>
+        <td>Prisni disa sekonda dhe provoni sërish. Nëse vazhdon, kontaktoni admin-in</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <div style="border-radius:var(--radius);background:var(--navy);color:#fff;padding:28px 32px;margin-top:32px;" class="avoid-break">
+    <div style="display:flex;align-items:flex-start;gap:20px;">
+      <div style="font-size:28pt;">📞</div>
+      <div>
+        <h4 style="font-size:12pt;font-weight:700;margin-bottom:8px;color:#fff;">Keni nevojë për ndihmë shtesë?</h4>
+        <p style="font-size:9pt;color:rgba(255,255,255,0.7);margin-bottom:12px;">
+          Nëse ky manual nuk ju ndihmon të zgjidhni problemin, kontaktoni administratorin teknik
+          të platformës ose njësinë mbështetëse:
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:rgba(255,255,255,0.07);border-radius:6px;padding:12px 16px;">
+            <div style="font-size:7.5pt;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Email</div>
+            <div style="font-size:9.5pt;font-weight:600;color:#fff;">admin@eformular.gov.al</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.07);border-radius:6px;padding:12px 16px;">
+            <div style="font-size:7.5pt;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Platformë</div>
+            <div style="font-size:9.5pt;font-weight:600;color:#fff;">e-Aplikim OBP v1.0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back cover info -->
+  <div style="text-align:center;margin-top:64px;padding-top:32px;border-top:1px solid var(--gray200);">
+    <div style="font-size:9pt;color:var(--gray400);line-height:2;">
+      <strong style="color:var(--gray600);">e-Aplikim</strong> — Platformë Elektronike e Prokurimit Publik<br>
+      Manual Përdorimi · Versioni 1.0 · Qershor 2026<br>
+      Dokumenti është konfidencial dhe parashikohet vetëm për përdorim të brendshëm institucional.<br>
+      © 2026 e-Aplikim OBP — Të gjitha të drejtat e rezervuara
+    </div>
+  </div>
+
+</div>
+
+<!-- Print button (only visible on screen) -->
+<div class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:999;">
+  <button
+    onclick="window.print()"
+    style="
+      background:var(--navy);
+      color:#fff;
+      border:none;
+      border-radius:100px;
+      padding:14px 28px;
+      font-size:10pt;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 4px 20px rgba(0,0,0,0.25);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    "
+  >
+    🖨️ Ruaj si PDF
+  </button>
+</div>
+
+</body>
+</html>

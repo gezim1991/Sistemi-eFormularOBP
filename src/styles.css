@@ -1,0 +1,368 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", "Source Serif Pro", ui-serif, Georgia, serif;
+
+  /* Brand aliases used by the procurement document editor */
+  --color-navy: var(--primary);
+  --color-navy-foreground: var(--primary-foreground);
+  --color-gold: var(--accent);
+  --color-gold-foreground: var(--accent-foreground);
+
+  --shadow-elevated:
+    0 1px 2px 0 oklch(0.22 0.06 260 / 0.04), 0 8px 24px -12px oklch(0.22 0.06 260 / 0.12);
+  --shadow-card: 0 1px 0 0 oklch(0.22 0.06 260 / 0.04), 0 1px 3px 0 oklch(0.22 0.06 260 / 0.06);
+}
+
+/* Micro-interaction keyframes used across the app */
+@keyframes field-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes row-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(0.995 0.002 250);
+  --foreground: oklch(0.22 0.05 260);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.05 260);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.05 260);
+
+  /* Navy primary */
+  --primary: oklch(0.24 0.07 262);
+  --primary-foreground: oklch(0.985 0.003 250);
+
+  --secondary: oklch(0.965 0.008 250);
+  --secondary-foreground: oklch(0.24 0.07 262);
+
+  --muted: oklch(0.965 0.008 250);
+  --muted-foreground: oklch(0.5 0.02 257);
+
+  /* Gold/amber accent */
+  --accent: oklch(0.78 0.14 70);
+  --accent-foreground: oklch(0.22 0.05 260);
+
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.985 0.003 250);
+
+  --success: oklch(0.62 0.14 155);
+  --success-foreground: oklch(0.985 0.003 250);
+
+  --warning: oklch(0.78 0.15 70);
+  --warning-foreground: oklch(0.22 0.05 260);
+
+  --info: oklch(0.6 0.12 240);
+  --info-foreground: oklch(0.985 0.003 250);
+
+  --border: oklch(0.92 0.008 255);
+  --input: oklch(0.92 0.008 255);
+  --ring: oklch(0.78 0.14 70);
+
+  --sidebar: oklch(0.19 0.05 262);
+  --sidebar-foreground: oklch(0.92 0.01 250);
+  --sidebar-primary: oklch(0.78 0.14 70);
+  --sidebar-primary-foreground: oklch(0.19 0.05 262);
+  --sidebar-accent: oklch(0.26 0.06 262);
+  --sidebar-accent-foreground: oklch(0.985 0.003 250);
+  --sidebar-border: oklch(0.28 0.05 262);
+  --sidebar-ring: oklch(0.78 0.14 70);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Forms list intro: icons fly from sidebar to list area then dissolve. */
+@keyframes forms-fly-in {
+  0% {
+    transform: translate(var(--fx-from-x, -240px), var(--fx-from-y, 0px)) scale(0.4) rotate(-8deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  70% {
+    transform: translate(calc(var(--fx-to-x, 0px) * 0.9), calc(var(--fx-to-y, 0px) * 0.95))
+      scale(1.05) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--fx-to-x, 0px), var(--fx-to-y, 0px)) scale(0.35) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.forms-fly-icon {
+  animation: forms-fly-in 1700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes forms-row-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.forms-row-rise {
+  animation: forms-row-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+}
+
+@keyframes empty-state-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes empty-state-orbit {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+}
+
+.empty-state-orbit {
+  animation: empty-state-orbit 3.8s ease-in-out infinite;
+}
+
+@keyframes empty-state-icon {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.empty-state-icon {
+  animation: empty-state-icon 2.4s ease-in-out infinite;
+}
+
+@keyframes empty-state-ping {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.55;
+  }
+  75%,
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+}
+
+.empty-state-ping {
+  animation: empty-state-ping 2.8s ease-out infinite;
+}
+
+@keyframes empty-state-scan {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  18%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(2.75rem);
+    opacity: 0;
+  }
+}
+
+.empty-state-scan {
+  animation: empty-state-scan 2.2s ease-in-out infinite;
+}
+
+@keyframes empty-state-line {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scaleX(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.empty-state-line {
+  animation: empty-state-line 1.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Login page: soft drifting background blobs */
+@keyframes login-blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -24px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 18px) scale(0.97);
+  }
+}
+
+.login-blob {
+  animation: login-blob-drift 24s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Login card entrance */
+@keyframes login-card-in {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-card-in {
+  animation: login-card-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── InlineYellow contenteditable placeholder ── */
+/*
+ * The span is display:inline so it flows exactly like surrounding text.
+ * ::before renders the full placeholder text inline — same baseline, same font.
+ * Once the user types, :empty no longer matches and ::before disappears.
+ */
+.inline-yellow-field:empty::before {
+  content: attr(data-placeholder);
+  font-style: italic;
+  color: rgba(15, 23, 42, 0.65);
+  pointer-events: none;
+}
+.inline-yellow-field:focus:empty::before {
+  color: rgba(15, 23, 42, 0.35);
+}
+
+/* Login button success pulse */
+@keyframes login-success-pulse {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.62 0.14 155 / 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 12px oklch(0.62 0.14 155 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.62 0.14 155 / 0);
+  }
+}
+
+.login-success-pulse {
+  animation: login-success-pulse 600ms ease-out;
+}
