@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OpbRouteImport } from './routes/opb'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AutoritetetRouteImport } from './routes/autoritetet'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -28,6 +29,11 @@ import { Route as AdminInstitutionsRouteImport } from './routes/admin.institutio
 const OpbRoute = OpbRouteImport.update({
   id: '/opb',
   path: '/opb',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/autoritetet': typeof AutoritetetRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/opb': typeof OpbRoute
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/autoritetet': typeof AutoritetetRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/opb': typeof OpbRoute
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/autoritetet': typeof AutoritetetRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/opb': typeof OpbRoute
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/autoritetet'
     | '/login'
+    | '/notifications'
     | '/opb'
     | '/admin/institutions'
     | '/admin/system'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/'
     | '/autoritetet'
     | '/login'
+    | '/notifications'
     | '/opb'
     | '/admin/institutions'
     | '/admin/system'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/autoritetet'
     | '/login'
+    | '/notifications'
     | '/opb'
     | '/admin/institutions'
     | '/admin/system'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AutoritetetRoute: typeof AutoritetetRoute
   LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
   OpbRoute: typeof OpbRoute
   DocPrintIdRoute: typeof DocPrintIdRoute
   FormsIdRoute: typeof FormsIdRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/opb'
       fullPath: '/opb'
       preLoaderRoute: typeof OpbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -350,6 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AutoritetetRoute: AutoritetetRoute,
   LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
   OpbRoute: OpbRoute,
   DocPrintIdRoute: DocPrintIdRoute,
   FormsIdRoute: FormsIdRoute,

@@ -22,7 +22,14 @@ interface ListResponse {
 }
 
 export const notificationsApi = {
-  list: () => apiJson<ListResponse>("/notifications/"),
+  list: (params?: { page?: number; page_size?: number; is_read?: boolean }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.page_size) qs.set("page_size", String(params.page_size));
+    if (params?.is_read !== undefined) qs.set("is_read", String(params.is_read));
+    const q = qs.toString();
+    return apiJson<ListResponse>(`/notifications/${q ? `?${q}` : ""}`);
+  },
   markRead: (id: number) =>
     apiFetch(`/notifications/${id}/read/`, { method: "POST" }),
   markAllRead: () =>

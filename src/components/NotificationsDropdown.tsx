@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   Check,
   CheckCheck,
+  ChevronRight,
   Download,
   Eye,
   Send,
@@ -133,7 +134,7 @@ function NotifRow({
 
 export function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
-  const { notifications, unreadCount, loading, markRead, markAllRead, remove } =
+  const { notifications, unreadCount, totalCount, loading, markRead, markAllRead, remove } =
     useNotifications();
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
@@ -229,15 +230,22 @@ export function NotificationsDropdown() {
             )}
           </div>
 
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="border-t px-4 py-2 text-center">
-              <p className="text-[11px] text-muted-foreground">
-                {notifications.length} njoftim{notifications.length !== 1 ? "e" : ""}
-                {unreadCount > 0 ? ` · ${unreadCount} të palexuara` : " · të gjitha lexuar"}
-              </p>
-            </div>
-          )}
+          {/* Footer — "Shiko të gjitha" */}
+          <div className="border-t">
+            <Link
+              to="/notifications"
+              onClick={() => setOpen(false)}
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
+            >
+              Shiko të gjitha njoftimet
+              {totalCount > 10 && (
+                <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                  {totalCount}
+                </span>
+              )}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       )}
     </div>

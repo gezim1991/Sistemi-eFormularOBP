@@ -15,6 +15,7 @@ const POLL_MS = 30_000;
 interface NotificationsContextValue {
   notifications: NotificationItem[];
   unreadCount: number;
+  totalCount: number;
   loading: boolean;
   refresh: () => Promise<void>;
   markRead: (id: number) => Promise<void>;
@@ -27,22 +28,30 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(nul
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetch = useCallback(async () => {
     try {
-      const { results } = await notificationsApi.list();
-      setNotifications(results);
+      const [listRes, countRes] = await Promise.all([
+        notificationsApi.list({ page_size: 10 }),
+        notificationsApi.unreadCount(),
+      ]);
+      setNotifications(listRes.results);
+      setTotalCount(listRes.count);
+      setUnreadCount(countRes.unread_count);
     } catch {
       // silently ignore — network errors or logged-out state
     }
   }, []);
 
-  // Start / stop polling based on auth
   useEffect(() => {
     if (!user) {
       setNotifications([]);
+      setUnreadCount(0);
+      setTotalCount(0);
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
@@ -52,7 +61,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     timerRef.current = setInterval(fetch, POLL_MS);
 
-    // Re-fetch when the tab becomes visible again
     const onVisible = () => {
       if (document.visibilityState === "visible") fetch();
     };
@@ -73,23 +81,26 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     );
+    setUnreadCount((c) => Math.max(0, c - 1));
   }, []);
 
   const markAllRead = useCallback(async () => {
     await notificationsApi.markAllRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnreadCount(0);
   }, []);
 
   const remove = useCallback(async (id: number) => {
+    const target = notifications.find((n) => n.id === id);
     await notificationsApi.remove(id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+    setTotalCount((c) => Math.max(0, c - 1));
+    if (target && !target.is_read) setUnreadCount((c) => Math.max(0, c - 1));
+  }, [notifications]);
 
   return (
     <NotificationsContext.Provider
-      value={{ notifications, unreadCount, loading, refresh, markRead, markAllRead, remove }}
+      value={{ notifications, unreadCount, totalCount, loading, refresh, markRead, markAllRead, remove }}
     >
       {children}
     </NotificationsContext.Provider>

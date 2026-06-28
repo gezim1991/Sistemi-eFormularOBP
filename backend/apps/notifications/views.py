@@ -13,7 +13,13 @@ class NotificationViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete", "head", "options"]
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user).order_by("-created_at")
+        qs = Notification.objects.filter(user=self.request.user).order_by("-created_at")
+        is_read = self.request.query_params.get("is_read")
+        if is_read == "false":
+            qs = qs.filter(is_read=False)
+        elif is_read == "true":
+            qs = qs.filter(is_read=True)
+        return qs
 
     def create(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
