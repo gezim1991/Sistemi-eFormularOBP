@@ -7,5 +7,5 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ["id", "form", "form_public_id", "message", "is_read", "created_at"]
+        fields = ["id", "form", "form_public_id", "message", "type", "is_read", "created_at"]
         read_only_fields = ["id", "created_at"]

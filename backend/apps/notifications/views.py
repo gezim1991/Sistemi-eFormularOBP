@@ -7,12 +7,19 @@ from .models import Notification
 from .serializers import NotificationSerializer
 
 
-class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "delete", "head", "options"]
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by("-created_at")
+
+    def create(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(detail=True, methods=["post"], url_path="read")
     def mark_read(self, request, pk=None):

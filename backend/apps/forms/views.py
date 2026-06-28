@@ -12,7 +12,7 @@ from rest_framework.viewsets import ViewSet
 
 from apps.audit.utils import log_action
 from apps.documents.models import DocumentFile
-from apps.notifications.utils import notify_opb_users
+from apps.notifications.utils import notify_opb_users, notify_ak_form_viewed, notify_ak_form_downloaded
 from .models import Form, FormOpbActivity
 from .pdf_generator import generate_form_pdf
 from .serializers import FormSerializer, FormWriteSerializer
@@ -190,6 +190,7 @@ class FormViewSet(ViewSet):
                 if not activity.viewed_at:
                     activity.viewed_at = timezone.now()
                 activity.save()
+                notify_ak_form_downloaded(form, request.user)
             log_action(request, "opb_downloaded_pdf", "form", form.public_id)
         else:
             log_action(request, "download_pdf", "form", form.public_id)
@@ -297,6 +298,7 @@ class FormViewSet(ViewSet):
             )
         form = self._get_form(request.user, pk)
         _mark_opb_viewed(form, request.user)
+        notify_ak_form_viewed(form, request.user)
         log_action(request, "opb_mark_viewed", "form", form.public_id)
         return Response({"detail": "Formulari u shënua si i parë."})
 

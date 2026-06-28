@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { FormsProvider } from "@/lib/forms-store";
 import { AuthProvider, useAuth } from "@/lib/auth-store";
 import { ManagedUsersProvider } from "@/lib/managed-users-store";
+import { NotificationsProvider } from "@/lib/notifications-store";
 
 const PUBLIC_ROUTES = new Set(["/login"]);
 
@@ -166,12 +167,14 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <FormsProvider>
-          <ManagedUsersProvider>
-            <RouteGuard>
-              <Outlet />
-            </RouteGuard>
-            <Toaster position="top-right" />
-          </ManagedUsersProvider>
+          <NotificationsProvider>
+            <ManagedUsersProvider>
+              <RouteGuard>
+                <Outlet />
+              </RouteGuard>
+              <Toaster position="top-right" />
+            </ManagedUsersProvider>
+          </NotificationsProvider>
         </FormsProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -5,7 +5,6 @@ import {
   FileText,
   FilePlus2,
   ShieldCheck,
-  Bell,
   Search,
   ChevronRight,
   Inbox,
@@ -22,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-store";
 import { useForms } from "@/lib/forms-store";
+import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import type { FormStatus } from "@/lib/forms-types";
 import {
   DropdownMenu,
@@ -281,10 +281,7 @@ export function AppShell({
             </div>
           </div>
           <div className="flex flex-1 items-center justify-end gap-3 md:flex-none">
-            <button className="relative grid h-9 w-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-              <Bell className="h-4 w-4" />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-accent" />
-            </button>
+            <NotificationsDropdown />
             <div className="flex items-center gap-3 border-l border-border pl-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-medium leading-tight">{user?.name ?? "—"}</p>
