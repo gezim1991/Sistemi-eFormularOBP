@@ -1,4 +1,4 @@
-import { FileText, Inbox } from "lucide-react";
+import { Bell, FileText, Inbox } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 type EmptyStateMotionProps = {
   title: string;
   description: string;
-  variant?: "document" | "inbox";
+  variant?: "document" | "inbox" | "notifications";
   action?: ReactNode;
   className?: string;
 };
@@ -18,7 +18,7 @@ export function EmptyStateMotion({
   action,
   className,
 }: EmptyStateMotionProps) {
-  const Icon = variant === "inbox" ? Inbox : FileText;
+  const Icon = variant === "inbox" ? Inbox : variant === "notifications" ? Bell : FileText;
 
   return (
     <div

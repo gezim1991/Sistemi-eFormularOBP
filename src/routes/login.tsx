@@ -249,7 +249,7 @@ function LoginPage() {
                       type="button"
                       className="text-xs font-medium text-primary underline-offset-2 hover:underline"
                     >
-                      Harrova fjalëkalimin
+                      Keni harruar fjalëkalimin?
                     </button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
@@ -308,23 +308,6 @@ function LoginPage() {
                     </form>
                   </DialogContent>
                 </Dialog>
-              </div>
-
-              <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
-                <button
-                  type="button"
-                  onClick={() => quickFill("aplikues")}
-                  className="flex-1 rounded-md border border-dashed border-border bg-muted/30 px-2.5 py-1.5 text-left font-mono transition-colors hover:border-accent/40 hover:bg-accent/5"
-                >
-                  AK · ak@eformular.gov.al
-                </button>
-                <button
-                  type="button"
-                  onClick={() => quickFill("opb")}
-                  className="flex-1 rounded-md border border-dashed border-border bg-muted/30 px-2.5 py-1.5 text-left font-mono transition-colors hover:border-accent/40 hover:bg-accent/5"
-                >
-                  OPB · opb@eformular.gov.al
-                </button>
               </div>
             </div>
           </form>

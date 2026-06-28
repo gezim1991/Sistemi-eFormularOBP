@@ -179,9 +179,13 @@ export function AppShell({
               const isObpPanel = item.to === "/opb" && item.exact && user?.role === "opb";
               const allFormsBadgeCount = user?.role === "opb" ? opbFreshCount : unseenCount;
               const badge = isAllForms
-                ? allFormsBadgeCount > 0 ? allFormsBadgeCount : undefined
+                ? allFormsBadgeCount > 0
+                  ? allFormsBadgeCount
+                  : undefined
                 : isObpPanel
-                  ? opbFreshCount > 0 ? opbFreshCount : undefined
+                  ? opbFreshCount > 0
+                    ? opbFreshCount
+                    : undefined
                   : item.to === "/forms" && (item.exact || item.search)
                     ? countFor(itemStatus)
                     : undefined;
@@ -282,34 +286,55 @@ export function AppShell({
           </div>
           <div className="flex flex-1 items-center justify-end gap-3 md:flex-none">
             <NotificationsDropdown />
-            <div className="flex items-center gap-3 border-l border-border pl-3">
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-medium leading-tight">{user?.name ?? "—"}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  {user?.role === "superadmin"
-                    ? "Super Admin"
-                    : user?.role === "opb"
-                      ? (user.institucioni ?? "Operator OPB")
-                      : "Aplikues"}
-                </p>
-              </div>
+            <div className="flex items-center gap-2 border-l border-border pl-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-                    {user?.initials ?? "·"}
+                  <button
+                    className={cn(
+                      "group flex items-center gap-3 rounded-full py-1 pl-3 pr-1 text-right",
+                      "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary/5 hover:shadow-sm",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 active:translate-y-0 active:scale-[0.99]",
+                    )}
+                  >
+                    <span className="hidden min-w-0 sm:block">
+                      <span className="block truncate text-sm font-semibold leading-tight text-foreground transition-colors group-hover:text-primary">
+                        {user?.name ?? "—"}
+                      </span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {user?.role === "superadmin"
+                          ? "Super Admin"
+                          : user?.role === "opb"
+                            ? (user.institucioni ?? "Operator OPB")
+                            : "Aplikues"}
+                      </span>
+                    </span>
+                    <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:shadow-[0_8px_22px_-14px_var(--color-primary)]">
+                      <span className="absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[120%]" />
+                      <span className="relative">{user?.initials ?? "·"}</span>
+                    </span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="font-normal">
-                    <p className="text-sm font-medium">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-64 overflow-hidden rounded-xl p-0 shadow-[var(--shadow-elevated)] animate-[scale-in_150ms_ease-out] origin-top-right"
+                >
+                  <DropdownMenuLabel className="bg-muted/30 px-4 py-3 font-normal">
+                    <p className="text-sm font-semibold">{user?.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{user?.email}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-destructive focus:text-destructive"
+                    className={cn(
+                      "group/logout m-2 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-destructive",
+                      "transition-all duration-200 ease-out hover:translate-x-0.5 focus:bg-destructive/8 focus:text-destructive",
+                    )}
                   >
-                    <LogOut className="mr-2 h-4 w-4" /> Dil nga llogaria
+                    <span className="grid h-8 w-8 place-items-center rounded-md bg-destructive/10 transition-all duration-200 group-hover/logout:bg-destructive group-hover/logout:text-destructive-foreground">
+                      <LogOut className="h-4 w-4 transition-transform duration-200 group-hover/logout:translate-x-0.5" />
+                    </span>
+                    <span className="font-medium">Dil nga llogaria</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

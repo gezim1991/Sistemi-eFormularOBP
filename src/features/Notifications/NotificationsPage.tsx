@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  Check,
-  CheckCheck,
-  Download,
-  Eye,
-  Send,
-  Trash2,
-} from "lucide-react";
+import { Bell, Check, CheckCheck, Download, Eye, Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/layout/AppShell";
+import { EmptyStateMotion } from "@/components/EmptyStateMotion";
 import { Pager, usePaged, DEFAULT_PAGE_SIZE } from "@/components/Pager";
-import { notificationsApi, type NotificationItem, type NotificationType } from "@/lib/api/notifications";
+import {
+  notificationsApi,
+  type NotificationItem,
+  type NotificationType,
+} from "@/lib/api/notifications";
 import { useNotifications } from "@/lib/notifications-store";
 
 const PAGE_SIZE = 20;
 
-const TYPE_META: Record<NotificationType, { icon: typeof Bell; color: string; bg: string; label: string }> = {
+const TYPE_META: Record<
+  NotificationType,
+  { icon: typeof Bell; color: string; bg: string; label: string }
+> = {
   form_submitted: {
     icon: Send,
     color: "text-[oklch(0.42_0.12_60)]",
@@ -66,26 +66,23 @@ export function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [loadingPage, setLoadingPage] = useState(false);
 
-  const loadPage = useCallback(
-    async (p: number, currentTab: Tab) => {
-      setLoadingPage(true);
-      try {
-        const params: Parameters<typeof notificationsApi.list>[0] = {
-          page: p,
-          page_size: PAGE_SIZE,
-        };
-        if (currentTab === "unread") params.is_read = false;
-        const res = await notificationsApi.list(params);
-        setAllItems(res.results);
-        setTotalCount(res.count);
-      } catch {
-        // ignore
-      } finally {
-        setLoadingPage(false);
-      }
-    },
-    [],
-  );
+  const loadPage = useCallback(async (p: number, currentTab: Tab) => {
+    setLoadingPage(true);
+    try {
+      const params: Parameters<typeof notificationsApi.list>[0] = {
+        page: p,
+        page_size: PAGE_SIZE,
+      };
+      if (currentTab === "unread") params.is_read = false;
+      const res = await notificationsApi.list(params);
+      setAllItems(res.results);
+      setTotalCount(res.count);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingPage(false);
+    }
+  }, []);
 
   useEffect(() => {
     setPage(1);
@@ -177,20 +174,16 @@ export function NotificationsPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : allItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-            <div className="grid h-16 w-16 place-items-center rounded-full bg-muted">
-              <Bell className="h-7 w-7 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-medium">
-                {tab === "unread" ? "Asnjë njoftim i palexuar" : "Asnjë njoftim"}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {tab === "unread"
+          <div className="py-20">
+            <EmptyStateMotion
+              variant="notifications"
+              title={tab === "unread" ? "Asnjë njoftim i palexuar" : "Asnjë njoftim"}
+              description={
+                tab === "unread"
                   ? "Të gjitha njoftimet janë lexuar."
-                  : "Njoftimet do të shfaqen këtu kur të ndodhin ngjarje."}
-              </p>
-            </div>
+                  : "Njoftimet do të shfaqen këtu kur të ndodhin ngjarje."
+              }
+            />
           </div>
         ) : (
           <ul className="divide-y">
@@ -218,17 +211,9 @@ export function NotificationsPage() {
                     <Icon className={cn("h-5 w-5", meta.color)} />
                   </div>
 
-                  <button
-                    className="min-w-0 flex-1 text-left"
-                    onClick={() => handleClick(n)}
-                  >
+                  <button className="min-w-0 flex-1 text-left" onClick={() => handleClick(n)}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          "text-sm leading-snug",
-                          !n.is_read && "font-medium",
-                        )}
-                      >
+                      <span className={cn("text-sm leading-snug", !n.is_read && "font-medium")}>
                         {n.message}
                       </span>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">

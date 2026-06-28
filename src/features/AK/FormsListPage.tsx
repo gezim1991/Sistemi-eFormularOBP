@@ -21,7 +21,7 @@ import { useAuth } from "@/lib/auth-store";
 import { STATUS_META, type FormStatus } from "@/lib/forms-types";
 import { canBeSeenByOpb, getOpbFreshCount } from "@/features/OBP/opbActivity";
 import { formsApi } from "@/lib/api/forms";
-import { triggerDownload } from "@/lib/download";
+import { useFormPdfDownload } from "@/lib/use-form-pdf-download";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -67,6 +67,8 @@ const INTRO_ROW_DELAY_MS = 90;
 
 export function FormsListPage({ search }: { search: FormsSearch }) {
   const { forms, remove, unseenCount, markFormsSeen, refresh } = useForms();
+  const { download: downloadPdf, pdfState } = useFormPdfDownload();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const handleDelete = useCallback(
     async (id: string) => {
@@ -226,11 +228,15 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
   );
 
   const markOpbDownloaded = useCallback(
-    (id: string) => {
-      triggerDownload(formsApi.downloadPdfUrl(id), `${id}.pdf`);
+    async (id: string) => {
+      const form = forms.find((f) => f.id === id);
+      if (!form) return;
+      setDownloadingId(id);
+      await downloadPdf(form);
+      setDownloadingId(null);
       refresh().catch(() => null);
     },
-    [refresh],
+    [forms, downloadPdf, refresh],
   );
 
   const filtered = useMemo(() => {
@@ -445,10 +451,15 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                             size="sm"
                             variant="ghost"
                             onClick={() => markOpbDownloaded(f.id)}
+                            disabled={downloadingId === f.id && pdfState !== "idle"}
                             className="group/download h-8 px-2 text-muted-foreground hover:text-primary"
                             title="Shkarko PDF"
                           >
-                            <FileDown className="h-4 w-4 transition-transform group-hover/download:translate-y-0.5" />
+                            {downloadingId === f.id && pdfState === "rendering" ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : (
+                              <FileDown className="h-4 w-4 transition-transform group-hover/download:translate-y-0.5" />
+                            )}
                           </Button>
                         ) : (
                           <>

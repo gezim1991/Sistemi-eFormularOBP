@@ -29,7 +29,7 @@ import { UploadBox } from "@/components/UploadBox";
 import { useAuth } from "@/lib/auth-store";
 import { useForms } from "@/lib/forms-store";
 import { formsApi } from "@/lib/api/forms";
-import { triggerDownload } from "@/lib/download";
+import { useFormPdfDownload } from "@/lib/use-form-pdf-download";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +96,7 @@ export function FormDetailsPage({ id }: { id: string }) {
   const { getById, setStatus, update } = useForms();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { download: downloadPdf, pdfState } = useFormPdfDownload();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
@@ -191,7 +192,7 @@ export function FormDetailsPage({ id }: { id: string }) {
 
   const onDownload = () => {
     if (!form) return;
-    triggerDownload(formsApi.downloadPdfUrl(form.id), `${form.id}.pdf`);
+    downloadPdf(form);
   };
 
   const onUpload = async (file: File) => {
@@ -279,10 +280,24 @@ export function FormDetailsPage({ id }: { id: string }) {
             <Button
               variant="outline"
               onClick={onDownload}
+              disabled={pdfState !== "idle"}
               className="group/download transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5 hover:text-primary hover:shadow-sm"
             >
-              <FileDown className="mr-2 h-4 w-4 transition-transform duration-200 group-hover/download:translate-y-0.5" />{" "}
-              Shkarko PDF
+              {pdfState === "rendering" ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Duke gjeneruar...
+                </>
+              ) : pdfState === "done" ? (
+                <>
+                  <FileDown className="mr-2 h-4 w-4" /> U shkarkua!
+                </>
+              ) : (
+                <>
+                  <FileDown className="mr-2 h-4 w-4 transition-transform duration-200 group-hover/download:translate-y-0.5" />
+                  Shkarko PDF
+                </>
+              )}
             </Button>
           )}
           {!isOpb && (
@@ -571,7 +586,7 @@ function Detail({
   multiline,
 }: {
   label: string;
-  value: string;
+  value: string | null | undefined;
   mono?: boolean;
   multiline?: boolean;
 }) {

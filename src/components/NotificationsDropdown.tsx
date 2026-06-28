@@ -11,6 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { EmptyStateMotion } from "@/components/EmptyStateMotion";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/lib/notifications-store";
 import type { NotificationItem, NotificationType } from "@/lib/api/notifications";
@@ -28,10 +29,7 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("sq-AL", { day: "2-digit", month: "short" });
 }
 
-const TYPE_META: Record<
-  NotificationType,
-  { icon: typeof Bell; color: string; bg: string }
-> = {
+const TYPE_META: Record<NotificationType, { icon: typeof Bell; color: string; bg: string }> = {
   form_submitted: {
     icon: Send,
     color: "text-[oklch(0.42_0.12_60)]",
@@ -97,9 +95,7 @@ function NotifRow({
           if (!n.is_read) onRead();
         }}
       >
-        <p className={cn("text-sm leading-snug", !n.is_read && "font-medium")}>
-          {n.message}
-        </p>
+        <p className={cn("text-sm leading-snug", !n.is_read && "font-medium")}>{n.message}</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">{timeAgo(n.created_at)}</p>
       </button>
 
@@ -153,14 +149,22 @@ export function NotificationsDropdown() {
       {/* Bell button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative grid h-9 w-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className={cn(
+          "group relative grid h-9 w-9 place-items-center rounded-full text-muted-foreground",
+          "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary/5 hover:text-primary hover:shadow-sm",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 active:translate-y-0 active:scale-95",
+          open && "bg-primary/8 text-primary shadow-sm",
+        )}
         aria-label="Njoftimet"
       >
-        <Bell className="h-4 w-4" />
+        <Bell className="h-4 w-4 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-0.5 text-[10px] font-bold text-primary-foreground">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
+          <>
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent shadow-[0_0_0_3px_color-mix(in_oklch,var(--accent)_22%,transparent)]" />
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-0.5 text-[10px] font-bold text-primary-foreground shadow-sm transition-transform duration-200 group-hover:scale-110">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          </>
         )}
       </button>
 
@@ -204,16 +208,13 @@ export function NotificationsDropdown() {
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-muted">
-                  <Bell className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Asnjë njoftim</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Njoftimet do të shfaqen këtu.
-                  </p>
-                </div>
+              <div className="px-6 py-9">
+                <EmptyStateMotion
+                  variant="notifications"
+                  title="Asnjë njoftim"
+                  description="Njoftimet do të shfaqen këtu."
+                  className="[&_.empty-state-orbit]:scale-75 [&_[aria-hidden]]:hidden"
+                />
               </div>
             ) : (
               <div className="divide-y">

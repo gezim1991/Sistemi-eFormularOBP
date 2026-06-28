@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useForms } from "@/lib/forms-store";
 import type { FormRecord } from "@/lib/forms-types";
 import { formsApi } from "@/lib/api/forms";
-import { triggerDownload } from "@/lib/download";
+import { useFormPdfDownload } from "@/lib/use-form-pdf-download";
 
 const TABS = [
   { value: "all", label: "Të gjithë" },
@@ -42,6 +42,8 @@ function fmt(iso?: string) {
 
 export function ObpPanelPage() {
   const { forms, refresh } = useForms();
+  const { download: downloadPdf, pdfState } = useFormPdfDownload();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabValue>("all");
   const [q, setQ] = useState("");
 
@@ -116,8 +118,10 @@ export function ObpPanelPage() {
       .catch(() => null);
   }
 
-  function markDownloaded(form: FormRecord) {
-    triggerDownload(formsApi.downloadPdfUrl(form.id), `${form.id}.pdf`);
+  async function markDownloaded(form: FormRecord) {
+    setDownloadingId(form.id);
+    await downloadPdf(form);
+    setDownloadingId(null);
     refresh().catch(() => null);
   }
 
@@ -317,11 +321,21 @@ export function ObpPanelPage() {
                     </Button>
                     <Button
                       size="sm"
+                      disabled={downloadingId === f.id && pdfState !== "idle"}
                       className="group/download bg-primary text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[var(--shadow-elevated)]"
                       onClick={() => markDownloaded(f)}
                     >
-                      <Download className="mr-1.5 h-3.5 w-3.5 transition-transform duration-200 group-hover/download:translate-y-0.5" />
-                      {downloaded ? "Shkarko sërish" : "Shkarko PDF"}
+                      {downloadingId === f.id && pdfState === "rendering" ? (
+                        <>
+                          <span className="mr-1.5 h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Duke gjeneruar...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-1.5 h-3.5 w-3.5 transition-transform duration-200 group-hover/download:translate-y-0.5" />
+                          {downloaded ? "Shkarko sërish" : "Shkarko PDF"}
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
