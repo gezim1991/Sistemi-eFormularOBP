@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { usersApi, type ApiUser } from "./api/users";
+import { useAuth } from "@/lib/auth-store";
 
 export type ManagedUserRole = "opb" | "ak";
 
@@ -49,17 +50,23 @@ interface Ctx {
 const ManagedUsersContext = createContext<Ctx | null>(null);
 
 export function ManagedUsersProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (user?.role !== "superadmin") {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     usersApi
       .list()
       .then((res) => setUsers(res.results.map(toManagedUser)))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const addUser = useCallback(
     async (
