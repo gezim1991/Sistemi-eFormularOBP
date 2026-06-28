@@ -29,6 +29,7 @@ import { UploadBox } from "@/components/UploadBox";
 import { useAuth } from "@/lib/auth-store";
 import { useForms } from "@/lib/forms-store";
 import { formsApi } from "@/lib/api/forms";
+import { triggerDownload } from "@/lib/download";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -190,7 +191,7 @@ export function FormDetailsPage({ id }: { id: string }) {
 
   const onDownload = () => {
     if (!form) return;
-    window.open(`/doc-print/${form.id}`, "_blank", "noopener,noreferrer");
+    triggerDownload(formsApi.downloadPdfUrl(form.id), `${form.id}.pdf`);
   };
 
   const onUpload = async (file: File) => {

@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/auth-store";
 import { STATUS_META, type FormStatus } from "@/lib/forms-types";
 import { canBeSeenByOpb, getOpbFreshCount } from "@/features/OBP/opbActivity";
 import { formsApi } from "@/lib/api/forms";
+import { triggerDownload } from "@/lib/download";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -226,7 +227,7 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
 
   const markOpbDownloaded = useCallback(
     (id: string) => {
-      window.open(`/doc-print/${id}`, "_blank", "noopener,noreferrer");
+      triggerDownload(formsApi.downloadPdfUrl(id), `${id}.pdf`);
       refresh().catch(() => null);
     },
     [refresh],

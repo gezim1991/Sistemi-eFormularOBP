@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useForms } from "@/lib/forms-store";
 import type { FormRecord } from "@/lib/forms-types";
 import { formsApi } from "@/lib/api/forms";
+import { triggerDownload } from "@/lib/download";
 
 const TABS = [
   { value: "all", label: "Të gjithë" },
@@ -116,7 +117,7 @@ export function ObpPanelPage() {
   }
 
   function markDownloaded(form: FormRecord) {
-    window.open(`/doc-print/${form.id}`, "_blank", "noopener,noreferrer");
+    triggerDownload(formsApi.downloadPdfUrl(form.id), `${form.id}.pdf`);
     refresh().catch(() => null);
   }
 
