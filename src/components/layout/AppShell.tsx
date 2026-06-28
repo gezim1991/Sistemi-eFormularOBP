@@ -17,12 +17,20 @@ import {
   ShieldAlert,
   UserPlus,
   Activity,
+  PlayCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-store";
 import { useForms } from "@/lib/forms-store";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import type { FormStatus } from "@/lib/forms-types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,6 +101,7 @@ export function AppShell({
   const { forms, unseenCount } = useForms();
   const [opbFreshCount, setOpbFreshCount] = useState(0);
   const [allFormsTooltipOpen, setAllFormsTooltipOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const nav: NavItem[] =
     user?.role === "superadmin"
       ? baseNavAdmin
@@ -285,6 +294,32 @@ export function AppShell({
             </div>
           </div>
           <div className="flex flex-1 items-center justify-end gap-3 md:flex-none">
+            <button
+              type="button"
+              onClick={() => setTutorialOpen(true)}
+              className={cn(
+                "group hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-sm sm:inline-flex",
+                "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/60 hover:bg-accent/10 hover:text-primary hover:shadow-[var(--shadow-card)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 active:translate-y-0 active:scale-[0.98]",
+              )}
+            >
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground transition-transform duration-200 group-hover:scale-105">
+                <PlayCircle className="h-4 w-4" />
+              </span>
+              Tutorial
+            </button>
+            <button
+              type="button"
+              onClick={() => setTutorialOpen(true)}
+              className={cn(
+                "group grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground shadow-sm sm:hidden",
+                "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/60 hover:bg-accent/10 hover:text-primary",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 active:translate-y-0 active:scale-95",
+              )}
+              aria-label="Hap tutorialin"
+            >
+              <PlayCircle className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+            </button>
             <NotificationsDropdown />
             <div className="flex items-center gap-2 border-l border-border pl-3">
               <DropdownMenu>
@@ -341,6 +376,32 @@ export function AppShell({
             </div>
           </div>
         </header>
+
+        <Dialog open={tutorialOpen} onOpenChange={setTutorialOpen}>
+          <DialogContent className="grid w-[min(96vw,calc((94dvh-76px)*16/9))] max-w-none grid-rows-[auto_auto] gap-0 overflow-hidden rounded-xl p-0">
+            <DialogHeader className="border-b bg-card px-5 py-3">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                  <PlayCircle className="h-5 w-5" />
+                </span>
+                <div>
+                  <DialogTitle>Tutorial e-Formular OBP</DialogTitle>
+                  <DialogDescription>
+                    Shiko udhëzuesin shpjegues për përdorimin e sistemit.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            <div className="aspect-video overflow-hidden bg-primary">
+              <iframe
+                title="Tutorial e-Formular OBP"
+                src="/tutorial-e-formular-obp.html"
+                className="h-full w-full border-0 bg-primary"
+                allow="autoplay; fullscreen; picture-in-picture"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="border-b border-border bg-card/50">
           <div className="px-4 py-6 sm:px-8 sm:py-8">

@@ -18,7 +18,19 @@ export async function downloadElementAsPdf(
     margin: 0,
     filename,
     image: { type: "jpeg", quality: 0.97 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      letterRendering: true,
+      // html2canvas crashes on oklch() colors used by Tailwind v4.
+      // FormularDocumentPdf uses only inline styles, so stripping all
+      // external/embedded stylesheets from the clone is safe.
+      onclone: (_cloneDoc: Document, element: HTMLElement) => {
+        const root = element.getRootNode() as Document;
+        root.querySelectorAll<HTMLElement>('link[rel="stylesheet"], style').forEach((s) => s.remove());
+      },
+    },
     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     pagebreak: { mode: ["avoid-all", "css"], before: ".doc-page-break" },
   };
