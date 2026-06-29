@@ -13,12 +13,14 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useFormulare } from "@/lib/formulare-store";
 import { useAuth } from "@/lib/auth-store";
+import { formsApi } from "@/lib/api/forms";
 import type { FormularDocumentData } from "@/lib/mock-data";
 import { Btn } from "@/components/btn";
 import { AppShell } from "@/components/layout/AppShell";
 import { EditableYellow, InlineYellow } from "@/components/doc-editor/editable";
 import { DropdownPicker, type PickerOption } from "@/components/doc-editor/dropdown-picker";
 import { DataTable, type Row } from "@/components/doc-editor/data-table";
+import { cn } from "@/lib/utils";
 
 /* ───────────────── Catalog options for table pickers ───────────────── */
 
@@ -304,6 +306,12 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
 
   const [grafiku, setGrafiku] = useState("");
   const [grafikuFileName, setGrafikuFileName] = useState("");
+  const [grafikuFile, setGrafikuFile] = useState<File | null>(null);
+  const [grafikuUpload, setGrafikuUpload] = useState<{
+    progress: number;
+    status: "uploading" | "done" | "ready";
+  } | null>(null);
+  const [grafikuUploadedForFormId, setGrafikuUploadedForFormId] = useState<string | null>(null);
 
   const [kontaktEmer, setKontaktEmer] = useState("");
   const [kontaktEmail, setKontaktEmail] = useState("");
@@ -323,6 +331,55 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
   const hasNeni76Cc = hasFilledRows(neni76CcRows);
 
   useEffect(() => {
+    if (!grafikuUpload || grafikuUpload.status !== "uploading") return;
+
+    const timer = window.setInterval(() => {
+      setGrafikuUpload((current) => {
+        if (!current || current.status !== "uploading") return current;
+        const step = current.progress < 55 ? 9 : current.progress < 84 ? 4 : 1.4;
+        return { ...current, progress: Math.min(96, current.progress + step) };
+      });
+    }, 240);
+
+    return () => window.clearInterval(timer);
+  }, [grafikuUpload?.status]);
+
+  const uploadGrafikuAttachment = async (formId: string, file: File, showToast = true) => {
+    setGrafikuUpload({ progress: 12, status: "uploading" });
+    try {
+      await formsApi.uploadAttachment(formId, file);
+      setGrafikuUpload({ progress: 100, status: "done" });
+      setGrafikuUploadedForFormId(formId);
+      if (showToast) toast.success(`"${file.name}" u shtua te bashkëlidhësit.`);
+      window.setTimeout(() => {
+        setGrafikuUpload((current) =>
+          current?.status === "done" ? { progress: 100, status: "ready" } : current,
+        );
+      }, 1400);
+    } catch (err) {
+      setGrafikuUpload(null);
+      toast.error("Ngarkimi i grafikut dështoi.", {
+        description: err instanceof Error ? err.message : "Provoni sërish.",
+      });
+      throw err;
+    }
+  };
+
+  const handleGrafikuFile = async (file: File | undefined | null) => {
+    if (!file) return;
+    setGrafikuFile(file);
+    setGrafikuFileName(file.name);
+    setGrafikuUploadedForFormId(null);
+
+    if (editId && existingFormular) {
+      await uploadGrafikuAttachment(existingFormular.id, file);
+      return;
+    }
+
+    setGrafikuUpload({ progress: 100, status: "ready" });
+  };
+
+  useEffect(() => {
     fetch("/cpv-codes.csv")
       .then((r) => (r.ok ? r.text() : ""))
       .then((csv) => setCpvOptions(csv ? parseCpvCsv(csv) : []))
@@ -331,7 +388,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
 
   useEffect(() => {
     if (!editId || !existingFormular || hydratedEditId === editId) return;
-    const doc = existingFormular.document;
+    const doc = existingFormular.document as FormularDocumentData | undefined;
     setTitulliProjekti(doc?.titulliProjekti || existingFormular.emerFormulari);
     setAdresaFooter(doc?.adresaFooter || existingFormular.data.adresa);
     setEmertimiInst(doc?.emertimiInst || existingFormular.data.institucioni);
@@ -547,6 +604,9 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
         emerFormulari: docTitle,
         document,
       });
+      if (grafikuFile && grafikuUploadedForFormId !== f.id) {
+        await uploadGrafikuAttachment(f.id, grafikuFile, false);
+      }
 
       if (!generate) {
         toast.success("Drafti u ruajt.");
@@ -1000,14 +1060,61 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
               onChange={setGrafiku}
               placeholder="(Tekst i lirë ose upload grafikun)"
             />
-            <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-navy/30 bg-white px-4 py-3 text-sm font-semibold text-navy transition-all duration-150 hover:-translate-y-0.5 hover:border-gold hover:bg-gold/10 hover:shadow-md print:hidden">
-              <Upload className="h-4 w-4" />
-              <span>{grafikuFileName || "Ngarko grafikun si PDF ose format tjetër"}</span>
+            <label className="group/grafiku mt-3 block cursor-pointer rounded-md border border-dashed border-navy/30 bg-white px-4 py-3 text-sm font-semibold text-navy transition-all duration-200 hover:-translate-y-0.5 hover:border-gold hover:bg-gold/10 hover:shadow-md print:hidden">
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "grid h-8 w-8 shrink-0 place-items-center rounded-md transition-all duration-200",
+                    grafikuUpload?.status === "done" || grafikuUpload?.status === "ready"
+                      ? "bg-success/10 text-success"
+                      : "bg-navy/5 text-navy group-hover/grafiku:bg-gold/20",
+                  )}
+                >
+                  {grafikuUpload?.status === "done" || grafikuUpload?.status === "ready" ? (
+                    <CheckCircle2 className="h-4 w-4 animate-in zoom-in-50 duration-200" />
+                  ) : (
+                    <Upload className="h-4 w-4 transition-transform duration-200 group-hover/grafiku:-translate-y-0.5" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">
+                    {grafikuFileName || "Ngarko grafikun si PDF ose format tjetër"}
+                  </span>
+                  {grafikuUpload && (
+                    <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-slate-200">
+                      <span
+                        className={cn(
+                          "block h-full rounded-full transition-[width] duration-300 ease-out",
+                          grafikuUpload.status === "uploading" ? "bg-gold" : "bg-success",
+                        )}
+                        style={{ width: `${grafikuUpload.progress}%` }}
+                      />
+                    </span>
+                  )}
+                </span>
+                {grafikuUpload && (
+                  <span
+                    className={cn(
+                      "shrink-0 text-[11px] font-semibold tabular-nums",
+                      grafikuUpload.status === "uploading" ? "text-gold" : "text-success",
+                    )}
+                  >
+                    {grafikuUpload.status === "uploading"
+                      ? `${Math.round(grafikuUpload.progress)}%`
+                      : grafikuUploadedForFormId
+                        ? "Ngarkuar"
+                        : "Gati"}
+                  </span>
+                )}
+              </div>
               <input
                 type="file"
                 className="sr-only"
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                onChange={(e) => setGrafikuFileName(e.target.files?.[0]?.name || "")}
+                onChange={(e) => {
+                  void handleGrafikuFile(e.target.files?.[0]);
+                  e.currentTarget.value = "";
+                }}
               />
             </label>
           </Section>

@@ -10,6 +10,7 @@ form_detail = FormViewSet.as_view({
 })
 generate_pdf = FormViewSet.as_view({"post": "generate_pdf"})
 download_pdf = FormViewSet.as_view({"get": "download_pdf"})
+document_preview = FormViewSet.as_view({"get": "document_preview"})
 upload_signed = FormViewSet.as_view({"post": "upload_signed"})
 submit_to_opb = FormViewSet.as_view({"post": "submit_to_opb"})
 mark_viewed = FormViewSet.as_view({"post": "mark_viewed"})
@@ -24,6 +25,7 @@ urlpatterns = [
     path("<str:pk>/", form_detail, name="form-detail"),
     path("<str:pk>/generate-pdf/", generate_pdf, name="form-generate-pdf"),
     path("<str:pk>/download-pdf/", download_pdf, name="form-download-pdf"),
+    path("<str:pk>/document-preview/", document_preview, name="form-document-preview"),
     path("<str:pk>/upload-signed/", upload_signed, name="form-upload-signed"),
     path("<str:pk>/submit-to-opb/", submit_to_opb, name="form-submit-to-opb"),
     path("<str:pk>/mark-viewed/", mark_viewed, name="form-mark-viewed"),

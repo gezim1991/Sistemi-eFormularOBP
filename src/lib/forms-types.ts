@@ -7,7 +7,7 @@ export type FormStatus =
   | "verified" // legacy alias kept for backward compat
   | "rejected"; // legacy alias kept for backward compat
 
-import type { FormularDocumentData } from "./mock-data";
+import type { FormularDocumentData, PunePublikeDocumentData } from "./mock-data";
 
 export interface AttachmentRecord {
   id: number;
@@ -40,7 +40,7 @@ export interface FormRecord {
   submittedToOpbAt?: string;
   rejectionReason?: string;
   emerFormulari?: string;
-  document?: FormularDocumentData;
+  document?: FormularDocumentData | PunePublikeDocumentData;
   // OPB activity (from backend)
   opbViewedAt?: string | null;
   opbDownloadedAt?: string | null;

@@ -1,5 +1,8 @@
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  ChevronLeft,
+  ChevronRight,
   FileText,
   FileEdit,
   FileSignature,
@@ -17,6 +20,7 @@ import type { FormStatus } from "@/lib/forms-types";
 
 export function DashboardPage() {
   const { forms } = useForms();
+  const [recentPage, setRecentPage] = useState(0);
 
   const count = (s: FormStatus | "all") =>
     s === "all" ? forms.length : forms.filter((f) => f.status === s).length;
@@ -48,7 +52,19 @@ export function DashboardPage() {
     },
   ];
 
-  const recent = [...forms].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)).slice(0, 5);
+  const recentPageSize = 3;
+  const allRecent = useMemo(
+    () => [...forms].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)),
+    [forms],
+  );
+  const recentTotalPages = Math.max(1, Math.ceil(allRecent.length / recentPageSize));
+  const safeRecentPage = Math.min(recentPage, recentTotalPages - 1);
+  const recent = allRecent.slice(
+    safeRecentPage * recentPageSize,
+    safeRecentPage * recentPageSize + recentPageSize,
+  );
+  const recentStart = allRecent.length === 0 ? 0 : safeRecentPage * recentPageSize + 1;
+  const recentEnd = Math.min((safeRecentPage + 1) * recentPageSize, allRecent.length);
 
   const steps = [
     "Plotëso formularin",
@@ -99,7 +115,11 @@ export function DashboardPage() {
           <div className="flex items-center justify-between border-b px-5 py-4">
             <div>
               <h2 className="text-base font-semibold">Aktiviteti i fundit</h2>
-              <p className="text-xs text-muted-foreground">5 formularët më të përditësuar</p>
+              <p className="text-xs text-muted-foreground">
+                {allRecent.length > 0
+                  ? `Shfaqen ${recentStart}-${recentEnd} nga ${allRecent.length}`
+                  : "Asnjë aktivitet ende"}
+              </p>
             </div>
             <Button asChild variant="ghost" size="sm">
               <Link to="/forms">
@@ -148,6 +168,39 @@ export function DashboardPage() {
               </li>
             )}
           </ul>
+          {allRecent.length > recentPageSize && (
+            <div className="flex items-center justify-between border-t px-5 py-3">
+              <p className="text-xs text-muted-foreground">
+                Faqe {safeRecentPage + 1} nga {recentTotalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={safeRecentPage === 0}
+                  onClick={() => setRecentPage((page) => Math.max(0, page - 1))}
+                  className="h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0"
+                  aria-label="Faqja e mëparshme"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={safeRecentPage >= recentTotalPages - 1}
+                  onClick={() =>
+                    setRecentPage((page) => Math.min(recentTotalPages - 1, page + 1))
+                  }
+                  className="h-8 px-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0"
+                  aria-label="Faqja tjetër"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="rounded-xl border bg-card p-5 shadow-[var(--shadow-card)]">

@@ -1,7 +1,25 @@
 // FormularDocumentData — the structured "Word-like" document captured by the
 // Formular elektronik për planifikimin e prokurimit form.
 
+export type FormType = "mallra-sherbime" | "pune";
+
+export interface PunePublikeDocumentData {
+  formType: "pune";
+  titulli: string;
+  llojiDokumentit: string;
+  objekti: string;
+  bazaDokumentit: string;
+  detaje: string;
+  shenimeTregu: string;
+  dokumentacionNdertim: string;
+  dokumentacionSherbim: string;
+  numriKopjeve: string;
+  grupiPunes: string;
+  rows: Array<Record<string, string>>;
+}
+
 export interface FormularDocumentData {
+  formType?: "mallra-sherbime";
   adresaFooter: string;
   titulliProjekti: string;
 

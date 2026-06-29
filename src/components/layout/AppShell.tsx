@@ -85,6 +85,7 @@ export function AppShell({
   description,
   breadcrumbs,
   actions,
+  actionsPlacement = "side",
   collapsedNav = false,
 }: {
   children: ReactNode;
@@ -92,6 +93,7 @@ export function AppShell({
   description?: string;
   breadcrumbs?: { label: string; to?: string }[];
   actions?: ReactNode;
+  actionsPlacement?: "side" | "below";
   collapsedNav?: boolean;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -421,14 +423,28 @@ export function AppShell({
                 ))}
               </nav>
             )}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div
+              className={cn(
+                "flex flex-col gap-4",
+                actionsPlacement === "side" && "sm:flex-row sm:items-end sm:justify-between",
+              )}
+            >
               <div className="min-w-0">
                 <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
                 {description && (
                   <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
                 )}
               </div>
-              {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+              {actions && (
+                <div
+                  className={cn(
+                    "flex flex-wrap gap-2",
+                    actionsPlacement === "side" ? "sm:justify-end" : "justify-start",
+                  )}
+                >
+                  {actions}
+                </div>
+              )}
             </div>
           </div>
         </div>

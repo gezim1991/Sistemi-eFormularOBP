@@ -14,6 +14,7 @@ from apps.audit.utils import log_action
 from apps.documents.models import DocumentFile
 from apps.notifications.utils import notify_opb_users, notify_ak_form_viewed, notify_ak_form_downloaded
 from .models import Form, FormOpbActivity
+from .document_builder import build_document
 from .pdf_generator import generate_form_pdf
 from .serializers import FormSerializer, FormWriteSerializer
 
@@ -91,6 +92,19 @@ class FormViewSet(ViewSet):
             log_action(request, "opb_viewed_form", "form", form.public_id)
         serializer = FormSerializer(form, context={"request": request})
         return Response(serializer.data)
+
+    # ---- DOCUMENT PREVIEW ----
+    @action(detail=True, methods=["get"], url_path="document-preview")
+    def document_preview(self, request, pk=None):
+        form = self._get_form(request.user, pk)
+        try:
+            doc = build_document(form)
+        except Exception as exc:
+            return Response(
+                {"detail": f"Gabim gjate ndertimit te preview: {exc}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        return Response(doc)
 
     # ---- PARTIAL UPDATE ----
     def partial_update(self, request, pk=None):
@@ -171,16 +185,19 @@ class FormViewSet(ViewSet):
         form = self._get_form(request.user, pk)
         if not form.can_download_pdf(request.user):
             return Response(
-                {"detail": "Nuk keni leje për të shkarkuar PDF."},
+                {"detail": "Nuk keni leje per te shkarkuar PDF."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        doc = form.document_files.filter(file_type=DocumentFile.GENERATED_PDF).order_by("-created_at").first()
-        if not doc:
+        try:
+            pdf_bytes = generate_form_pdf(form)
+        except Exception as exc:
             return Response(
-                {"detail": "PDF nuk është gjeneruar ende."},
-                status=status.HTTP_404_NOT_FOUND,
+                {"detail": f"Gabim gjate pergatitjes se PDF: {exc}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        filename = f"{form.public_id}.pdf"
 
         # Track OPB download
         if request.user.is_opb:
@@ -195,20 +212,12 @@ class FormViewSet(ViewSet):
         else:
             log_action(request, "download_pdf", "form", form.public_id)
 
-        try:
-            file_handle = doc.file.open("rb")
-            response = FileResponse(
-                file_handle,
-                content_type="application/pdf",
-                as_attachment=True,
-                filename=doc.original_name,
-            )
-            return response
-        except FileNotFoundError:
-            return Response(
-                {"detail": "Skedari nuk u gjet."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        return FileResponse(
+            io.BytesIO(pdf_bytes),
+            content_type="application/pdf",
+            as_attachment=True,
+            filename=filename,
+        )
 
     # ---- UPLOAD SIGNED ----
     @action(detail=True, methods=["post"], url_path="upload-signed")

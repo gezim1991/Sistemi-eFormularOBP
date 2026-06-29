@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { useEffect, useState } from "react";
 import { Download, Printer } from "lucide-react";
 import { formsApi } from "@/lib/api/forms";
 import { FormularDocumentPreview } from "@/components/FormularDocumentPreview";
-import { FormularDocumentPdf } from "@/components/FormularDocumentPdf";
-import { downloadElementAsPdf } from "@/lib/pdf-download";
+import { PuneDocumentPreview } from "@/components/PuneDocumentPreview";
+import { DocumentPreview } from "@/components/DocumentPreview";
+import type { FormDoc } from "@/lib/document-types";
 import type { FormRecord } from "@/lib/forms-types";
+import type { FormularDocumentData, PunePublikeDocumentData } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/doc-print/$id")({
   head: () => ({
@@ -18,35 +19,29 @@ export const Route = createFileRoute("/doc-print/$id")({
 function DocPrintRoute() {
   const { id } = Route.useParams();
   const [form, setForm] = useState<FormRecord | null>(null);
+  const [documentPreview, setDocumentPreview] = useState<FormDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    formsApi
-      .get(id)
-      .then((f) => setForm(f))
-      .catch(() => null)
+    Promise.allSettled([formsApi.get(id), formsApi.documentPreview(id)])
+      .then(([formResult, docResult]) => {
+        if (formResult.status === "fulfilled") setForm(formResult.value);
+        if (docResult.status === "fulfilled") setDocumentPreview(docResult.value);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
   async function handleDownload() {
     if (!form) return;
     setDownloading(true);
-
-    // Render the clean PDF version off-screen and capture it
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText =
-      "position:fixed;top:0;left:0;width:794px;visibility:hidden;pointer-events:none;z-index:-9999;overflow:hidden;";
-    document.body.appendChild(wrapper);
-    const root = createRoot(wrapper);
-    root.render(<FormularDocumentPdf document={form.document} />);
-    await new Promise<void>((resolve) => setTimeout(resolve, 900));
-    const el = wrapper.firstElementChild as HTMLElement | null;
-    if (el) await downloadElementAsPdf(el, `${form.id}.pdf`);
-    root.unmount();
-    document.body.removeChild(wrapper);
-
-    setDownloading(false);
+    try {
+      await formsApi.downloadPdf(form.id, `${form.id}.pdf`);
+    } catch {
+      alert("Shkarkimi dështoi. Sigurohuni që PDF është gjeneruar.");
+    } finally {
+      setDownloading(false);
+    }
   }
 
   if (loading) {
@@ -65,6 +60,11 @@ function DocPrintRoute() {
     );
   }
 
+  const isPune =
+    form.document != null &&
+    "formType" in form.document &&
+    (form.document as PunePublikeDocumentData).formType === "pune";
+
   return (
     <div className="min-h-screen bg-gray-100 py-8 print:bg-white print:py-0">
       <div className="mb-6 flex items-center justify-center gap-3 print:hidden">
@@ -76,7 +76,7 @@ function DocPrintRoute() {
           {downloading ? (
             <>
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Duke gjeneruar...
+              Duke shkarkuar...
             </>
           ) : (
             <>
@@ -91,8 +91,17 @@ function DocPrintRoute() {
           <Printer className="h-3.5 w-3.5" /> Shtyp
         </button>
       </div>
-      {/* On-screen preview keeps its visual styling */}
-      <FormularDocumentPreview document={form.document} />
+
+      {documentPreview ? (
+        <DocumentPreview doc={documentPreview} />
+      ) : isPune ? (
+        <PuneDocumentPreview
+          document={form.document as PunePublikeDocumentData}
+          adresa={form.adresa || form.institucioni}
+        />
+      ) : (
+        <FormularDocumentPreview document={form.document as FormularDocumentData | undefined} />
+      )}
     </div>
   );
 }

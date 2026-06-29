@@ -1,4 +1,5 @@
 import type { FormRecord } from "@/lib/forms-types";
+import type { FormDoc } from "@/lib/document-types";
 import { apiJson, apiFetch, API_BASE } from "./client";
 
 interface FormsListResponse {
@@ -13,6 +14,8 @@ export const formsApi = {
   },
 
   get: (id: string) => apiJson<FormRecord>(`/forms/${id}/`),
+
+  documentPreview: (id: string) => apiJson<FormDoc>(`/forms/${id}/document-preview/`),
 
   create: (data: Partial<FormRecord>) =>
     apiJson<FormRecord>("/forms/", {
@@ -39,6 +42,24 @@ export const formsApi = {
 
   /** Returns a direct-download URL (opens file response). */
   downloadPdfUrl: (id: string) => `${API_BASE}/forms/${id}/download-pdf/`,
+
+  /** Fetches the backend-generated PDF and triggers a browser download. */
+  downloadPdf: async (id: string, filename?: string): Promise<void> => {
+    const res = await apiFetch(`/forms/${id}/download-pdf/`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body?.detail ?? `HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename ?? `${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
 
   uploadSigned: (id: string, file: File) => {
     const fd = new FormData();

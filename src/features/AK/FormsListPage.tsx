@@ -232,7 +232,13 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
       const form = forms.find((f) => f.id === id);
       if (!form) return;
       setDownloadingId(id);
-      await downloadPdf(form);
+      try {
+        await downloadPdf(form);
+      } catch (err) {
+        toast.error("Shkarkimi dështoi.", {
+          description: err instanceof Error ? err.message : "Provoni sërish.",
+        });
+      }
       setDownloadingId(null);
       refresh().catch(() => null);
     },
@@ -358,9 +364,8 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="px-5 py-3 font-medium">Formulari</th>
+                <th className="w-[40%] px-5 py-3 font-medium">Formulari</th>
                 <th className="px-5 py-3 font-medium">Aplikuesi</th>
-                <th className="px-5 py-3 font-medium">NID</th>
                 <th className="px-5 py-3 font-medium">Krijuar</th>
                 {!isOpb && <th className="px-5 py-3 font-medium">Statusi</th>}
                 <th className="px-5 py-3 text-right font-medium">Veprime</th>
@@ -397,12 +402,10 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                         >
                           <FileText className="h-4 w-4" />
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 max-w-xs">
                           <div className="flex min-w-0 items-center gap-2">
-                            <p
-                              className={fresh ? "truncate font-semibold" : "truncate font-medium"}
-                            >
-                              Aplikim Zyrtar
+                            <p className={fresh ? "line-clamp-2 font-semibold" : "line-clamp-2 font-medium"}>
+                              {f.emerFormulari || `${f.emri} ${f.mbiemri}`.trim() || f.id}
                             </p>
                             {fresh && (
                               <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[oklch(0.42_0.12_60)]">
@@ -410,7 +413,19 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                               </span>
                             )}
                           </div>
-                          <p className="truncate font-mono text-xs text-muted-foreground">{f.id}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-mono text-xs text-muted-foreground">{f.id}</p>
+                            <span className={[
+                              "rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                              f.document?.formType === "pune"
+                                ? "bg-amber-100 text-amber-700"
+                                : f.document
+                                ? "bg-blue-50 text-blue-700"
+                                : "bg-muted text-muted-foreground",
+                            ].join(" ")}>
+                              {f.document?.formType === "pune" ? "Punë" : f.document ? "Mallra/Shërbime" : "Aplikim"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -420,7 +435,6 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                       </p>
                       <p className="text-xs text-muted-foreground">{f.institucioni}</p>
                     </td>
-                    <td className="px-5 py-4 font-mono text-xs">{f.nid}</td>
                     <td className="px-5 py-4 text-muted-foreground">{fmtDate(f.createdAt)}</td>
                     {!isOpb && (
                       <td className="px-5 py-4">
@@ -455,7 +469,7 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                             className="group/download h-8 px-2 text-muted-foreground hover:text-primary"
                             title="Shkarko PDF"
                           >
-                            {downloadingId === f.id && pdfState === "rendering" ? (
+                            {downloadingId === f.id && pdfState === "downloading" ? (
                               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                             ) : (
                               <FileDown className="h-4 w-4 transition-transform group-hover/download:translate-y-0.5" />

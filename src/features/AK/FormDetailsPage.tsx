@@ -16,6 +16,7 @@ import {
   XCircle,
   ShieldCheck,
   Send,
+  Eye,
 } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -30,11 +31,14 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { PdfPreview } from "@/components/PdfPreview";
 import { FormularDocumentPreview } from "@/components/FormularDocumentPreview";
+import { PuneDocumentPreview } from "@/components/PuneDocumentPreview";
+import { DocumentPreview } from "@/components/DocumentPreview";
 import { UploadBox } from "@/components/UploadBox";
 import { useAuth } from "@/lib/auth-store";
 import { useForms } from "@/lib/forms-store";
 import { formsApi } from "@/lib/api/forms";
 import { useFormPdfDownload } from "@/lib/use-form-pdf-download";
+import type { FormDoc } from "@/lib/document-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -105,16 +109,42 @@ export function FormDetailsPage({ id }: { id: string }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [attachmentUpload, setAttachmentUpload] = useState<{
+    name: string;
+    progress: number;
+    status: "uploading" | "done";
+  } | null>(null);
   const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [previewKey, setPreviewKey] = useState(0);
   const [previewPulse, setPreviewPulse] = useState(false);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
+  const [documentPreview, setDocumentPreview] = useState<FormDoc | null>(null);
   const [fly, setFly] = useState<{ from: FlyBox; to?: FlyBox } | null>(null);
+  const [submittingToOpb, setSubmittingToOpb] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    id: number;
+    name: string;
+    downloadUrl: string;
+  } | null>(null);
 
   const cachedForm = getById(id);
   const [freshForm, setFreshForm] = useState<ReturnType<typeof getById>>(undefined);
   const form = freshForm ?? cachedForm;
+
+  useEffect(() => {
+    if (!attachmentUpload || attachmentUpload.status !== "uploading") return;
+
+    const timer = window.setInterval(() => {
+      setAttachmentUpload((current) => {
+        if (!current || current.status !== "uploading") return current;
+        const step = current.progress < 55 ? 9 : current.progress < 84 ? 4 : 1.4;
+        return { ...current, progress: Math.min(96, current.progress + step) };
+      });
+    }, 240);
+
+    return () => window.clearInterval(timer);
+  }, [attachmentUpload?.status]);
   const isOpb = user?.role === "opb";
 
   // Always fetch fresh form data on mount so canUploadAttachment / attachments are up-to-date
@@ -124,6 +154,21 @@ export function FormDetailsPage({ id }: { id: string }) {
       setStatus(id, data.status).catch(() => null);
     }).catch(() => null);
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let cancelled = false;
+    setDocumentPreview(null);
+    formsApi.documentPreview(id)
+      .then((doc) => {
+        if (!cancelled) setDocumentPreview(doc);
+      })
+      .catch(() => {
+        if (!cancelled) setDocumentPreview(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, previewKey]);
 
   // Mark as viewed server-side when OPB opens the form
   useEffect(() => {
@@ -191,7 +236,10 @@ export function FormDetailsPage({ id }: { id: string }) {
     if (!form) return;
     try {
       const updated = await formsApi.generatePdf(form.id);
+      setFreshForm(updated);
       await setStatus(form.id, updated.status);
+      const preview = await formsApi.documentPreview(form.id).catch(() => null);
+      if (preview) setDocumentPreview(preview);
       setPreviewKey((k) => k + 1);
       setPreviewPulse(true);
       window.setTimeout(() => setPreviewPulse(false), 900);
@@ -208,9 +256,15 @@ export function FormDetailsPage({ id }: { id: string }) {
     }
   };
 
-  const onDownload = () => {
+  const onDownload = async () => {
     if (!form) return;
-    downloadPdf(form);
+    try {
+      await downloadPdf(form);
+    } catch (err) {
+      toast.error("Shkarkimi dështoi.", {
+        description: err instanceof Error ? err.message : "Provoni sërish.",
+      });
+    }
   };
 
   const onUpload = async (file: File) => {
@@ -231,7 +285,8 @@ export function FormDetailsPage({ id }: { id: string }) {
   };
 
   const onVerify = (trigger?: HTMLElement) => {
-    if (fly || !form) return;
+    if (fly || submittingToOpb || !form) return;
+    setSubmittingToOpb(true);
     const target =
       typeof document !== "undefined"
         ? document.querySelector<HTMLElement>("[data-obp-target]")
@@ -250,9 +305,11 @@ export function FormDetailsPage({ id }: { id: string }) {
     window.setTimeout(async () => {
       try {
         const updated = await formsApi.submitToOpb(form.id);
+        setFreshForm(updated);
         await setStatus(form.id, updated.status);
         toast.success("Formulari u dërgua në OPB.");
       } catch (err) {
+        setSubmittingToOpb(false);
         toast.error("Dërgimi dështoi.", {
           description: err instanceof Error ? err.message : "Provoni sërish.",
         });
@@ -264,11 +321,18 @@ export function FormDetailsPage({ id }: { id: string }) {
   const handleUploadAttachment = async (file: File) => {
     if (!form) return;
     setUploadingAttachment(true);
+    setAttachmentUpload({ name: file.name, progress: 12, status: "uploading" });
     try {
-      await formsApi.uploadAttachment(form.id, file);
+      const updated = await formsApi.uploadAttachment(form.id, file);
+      setFreshForm(updated);
       await setStatus(form.id, form.status);
+      setAttachmentUpload({ name: file.name, progress: 100, status: "done" });
       toast.success(`"${file.name}" u ngarkua.`);
+      window.setTimeout(() => {
+        setAttachmentUpload((current) => (current?.name === file.name ? null : current));
+      }, 1500);
     } catch (err) {
+      setAttachmentUpload(null);
       toast.error("Ngarkimi dështoi.", { description: err instanceof Error ? err.message : "Provoni sërish." });
     } finally {
       setUploadingAttachment(false);
@@ -290,18 +354,31 @@ export function FormDetailsPage({ id }: { id: string }) {
     }
   };
 
-  const doc = form.document;
-  const canDownload = Boolean(form.pdfGeneratedAt || doc);
+  const doc = form.document?.formType !== "pune" ? (form.document as import("@/lib/mock-data").FormularDocumentData | undefined) : undefined;
+  const puneDoc = form.document?.formType === "pune" ? (form.document as import("@/lib/mock-data").PunePublikeDocumentData) : undefined;
+  const canDownload = Boolean(form.pdfGeneratedAt || form.document);
   const titleName =
     doc?.titulliProjekti?.trim() ||
+    puneDoc?.titulli?.trim() ||
     form.emerFormulari ||
     `${form.emri} ${form.mbiemri}`.trim() ||
     form.id;
   const institucioni = doc?.emertimiInst?.trim() || form.institucioni;
+  const canUploadSignedAction =
+    !isOpb && Boolean(form.canUploadSigned) && form.status === "pdf_generated";
+  const canSubmitToOpbAction =
+    !isOpb && form.status === "signed_uploaded" && !submittingToOpb && !fly;
+  const renderPreview = () => {
+    if (documentPreview) return <DocumentPreview doc={documentPreview} />;
+    if (doc) return <FormularDocumentPreview document={doc} />;
+    if (puneDoc) return <PuneDocumentPreview document={puneDoc} adresa={form.adresa || form.institucioni} />;
+    return <PdfPreview form={form} />;
+  };
 
   return (
     <AppShell
       title={titleName}
+      actionsPlacement="below"
       description={`Aplikim zyrtar ${form.id} · ${institucioni}`}
       breadcrumbs={[
         { label: "Paneli", to: "/" },
@@ -341,10 +418,10 @@ export function FormDetailsPage({ id }: { id: string }) {
               disabled={pdfState !== "idle"}
               className="group/download transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5 hover:text-primary hover:shadow-sm"
             >
-              {pdfState === "rendering" ? (
+              {pdfState === "downloading" ? (
                 <>
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Duke gjeneruar...
+                  Duke shkarkuar...
                 </>
               ) : pdfState === "done" ? (
                 <>
@@ -358,28 +435,21 @@ export function FormDetailsPage({ id }: { id: string }) {
               )}
             </Button>
           )}
-          {!isOpb && (
-            <>
-              <Button
-                onClick={() => setUploadOpen(true)}
-                variant={form.status === "signed_uploaded" ? "outline" : "default"}
-                className={
-                  form.status === "signed_uploaded"
-                    ? ""
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                }
-              >
-                <Upload className="mr-2 h-4 w-4" /> Ngarko të firmosur
-              </Button>
-              {form.status === "signed_uploaded" && (
-                <Button
-                  onClick={(e) => onVerify(e.currentTarget)}
-                  className="bg-warning text-warning-foreground shadow-[0_8px_24px_-12px_var(--warning)] hover:bg-warning/90"
-                >
-                  <Send className="mr-2 h-4 w-4" /> Dërgo në OBP
-                </Button>
-              )}
-            </>
+          {canUploadSignedAction && (
+            <Button
+              onClick={() => setUploadOpen(true)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Upload className="mr-2 h-4 w-4" /> Ngarko të firmosur
+            </Button>
+          )}
+          {canSubmitToOpbAction && (
+            <Button
+              onClick={(e) => onVerify(e.currentTarget)}
+              className="bg-warning text-warning-foreground shadow-[0_8px_24px_-12px_var(--warning)] hover:bg-warning/90"
+            >
+              <Send className="mr-2 h-4 w-4" /> Dërgo në OBP
+            </Button>
           )}
         </>
       }
@@ -397,7 +467,7 @@ export function FormDetailsPage({ id }: { id: string }) {
               <div>
                 <p className="font-mono text-xs text-muted-foreground">{form.id}</p>
                 <p className="font-medium">
-                  {doc ? "Formular planifikimi prokurimi" : "Formular aplikimi zyrtar"}
+                  {puneDoc ? "Formular punësh publike" : doc ? "Formular planifikimi prokurimi" : "Formular aplikimi zyrtar"}
                 </p>
               </div>
             </div>
@@ -458,11 +528,16 @@ export function FormDetailsPage({ id }: { id: string }) {
                   <Detail label="Telefon" value={doc.kontaktTel} />
                   <Detail label="Adresa" value={doc.adresaFooter} />
                   <div className="sm:col-span-2">
-                    <Detail
-                      label="Panoramë e përgjithshme"
-                      value={doc.panoramaObjektivat}
-                      multiline
-                    />
+                    <Detail label="Panoramë e përgjithshme" value={doc.panoramaObjektivat} multiline />
+                  </div>
+                </>
+              ) : puneDoc ? (
+                <>
+                  <Detail label="Titulli i projektit" value={puneDoc.titulli} />
+                  <Detail label="Objekti i prokurimit" value={puneDoc.objekti} />
+                  <Detail label="Institucioni" value={form.institucioni} />
+                  <div className="sm:col-span-2">
+                    <Detail label="Identifikimi i nevojave" value={puneDoc.detaje} multiline />
                   </div>
                 </>
               ) : (
@@ -532,7 +607,7 @@ export function FormDetailsPage({ id }: { id: string }) {
             </div>
             <div className="overflow-x-auto bg-muted/30 p-6">
               <div key={previewKey} className="animate-in fade-in-0 zoom-in-[0.99] duration-500">
-                {doc ? <FormularDocumentPreview document={doc} /> : <PdfPreview form={form} />}
+                {renderPreview()}
               </div>
             </div>
           </div>
@@ -622,12 +697,68 @@ export function FormDetailsPage({ id }: { id: string }) {
               )}
             </div>
             <div className="divide-y px-4">
-              {!form.attachments || form.attachments.length === 0 ? (
+              {attachmentUpload && (
+                <div className="py-3">
+                  <div
+                    className={cn(
+                      "group/upload relative overflow-hidden rounded-xl border border-dashed p-3 transition-all duration-300 animate-in fade-in-0 slide-in-from-top-2",
+                      attachmentUpload.status === "done"
+                        ? "border-success/40 bg-success/5"
+                        : "border-accent/70 bg-accent/5",
+                    )}
+                  >
+                    <div className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-all duration-700 group-hover/upload:translate-x-[120%] group-hover/upload:opacity-100" />
+                    <div className="relative flex items-center gap-3">
+                      <div
+                        className={cn(
+                          "grid h-10 w-10 shrink-0 place-items-center rounded-md transition-all duration-300",
+                          attachmentUpload.status === "done"
+                            ? "bg-success text-success-foreground"
+                            : "bg-primary text-primary-foreground",
+                        )}
+                      >
+                        {attachmentUpload.status === "done" ? (
+                          <CheckCircle2 className="h-5 w-5 animate-in zoom-in-50 duration-200" />
+                        ) : (
+                          <FileText className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="truncate text-xs font-semibold">{attachmentUpload.name}</p>
+                          <span
+                            className={cn(
+                              "shrink-0 text-[11px] font-semibold tabular-nums",
+                              attachmentUpload.status === "done"
+                                ? "text-success"
+                                : "text-accent-foreground",
+                            )}
+                          >
+                            {attachmentUpload.status === "done"
+                              ? "U ngarkua"
+                              : `${Math.round(attachmentUpload.progress)}%`}
+                          </span>
+                        </div>
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-[width] duration-300 ease-out",
+                              attachmentUpload.status === "done" ? "bg-success" : "bg-accent",
+                            )}
+                            style={{ width: `${attachmentUpload.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {(!form.attachments || form.attachments.length === 0) && !attachmentUpload ? (
                 <p className="py-5 text-center text-xs text-muted-foreground">
                   Nuk ka bashkëlidhës.
                 </p>
               ) : (
-                form.attachments.map((att) => (
+                form.attachments?.map((att) => (
                   <div key={att.id} className="flex items-center gap-2 py-2.5">
                     <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">
@@ -635,6 +766,15 @@ export function FormDetailsPage({ id }: { id: string }) {
                       <p className="text-xs text-muted-foreground">{fmtSize(att.size)}</p>
                     </div>
                     <div className="flex shrink-0 gap-0.5">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="group/eye h-7 w-7 transition-all duration-200 hover:bg-primary/10 hover:text-primary"
+                        onClick={() => setPreviewAttachment(att)}
+                        title="Shiko dokumentin"
+                      >
+                        <Eye className="h-3.5 w-3.5 transition-all duration-200 group-hover/eye:scale-110 group-hover/eye:drop-shadow-[0_0_4px_hsl(var(--primary)/0.6)]" />
+                      </Button>
                       <Button size="icon" variant="ghost" className="h-7 w-7" asChild>
                         <a href={att.downloadUrl} download={att.name} target="_blank" rel="noreferrer">
                           <Download className="h-3.5 w-3.5" />
@@ -676,7 +816,7 @@ export function FormDetailsPage({ id }: { id: string }) {
             </dl>
           </div>
 
-          {!isOpb && form.status === "signed_uploaded" && (
+          {canSubmitToOpbAction && (
             <div className="rounded-xl border border-warning/30 bg-warning/5 p-5">
               <p className="text-sm font-medium text-warning">Gati për dërgim në OBP</p>
               <p className="mt-1 text-xs text-foreground/70">
@@ -693,6 +833,11 @@ export function FormDetailsPage({ id }: { id: string }) {
           )}
         </aside>
       </div>
+
+      <AttachmentViewerModal
+        attachment={previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
+      />
 
       {!isOpb && (
         <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
@@ -721,12 +866,177 @@ export function FormDetailsPage({ id }: { id: string }) {
           </DialogHeader>
           <div className="flex-1 overflow-auto bg-muted/40 p-6">
             <div className="mx-auto animate-[field-slide-in_240ms_ease-out]">
-              {doc ? <FormularDocumentPreview document={doc} /> : <PdfPreview form={form} />}
+              {renderPreview()}
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </AppShell>
+  );
+}
+
+function getAttachmentType(name: string): "pdf" | "image" | "other" {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "pdf") return "pdf";
+  if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) return "image";
+  return "other";
+}
+
+function AttachmentViewerModal({
+  attachment,
+  onClose,
+}: {
+  attachment: { id: number; name: string; downloadUrl: string } | null;
+  onClose: () => void;
+}) {
+  const type = attachment ? getAttachmentType(attachment.name) : "other";
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+
+  // Fetch as blob so session credentials are included (iframe can't do this)
+  useEffect(() => {
+    if (!attachment) {
+      setBlobUrl(null);
+      return;
+    }
+    if (type === "image") {
+      // Images don't need blob — fetch with credentials still needed if protected
+      let cancelled = false;
+      setLoading(true);
+      setFetchError(false);
+      fetch(attachment.downloadUrl, { credentials: "include" })
+        .then((r) => (r.ok ? r.blob() : Promise.reject(r.status)))
+        .then((blob) => {
+          if (!cancelled) setBlobUrl(URL.createObjectURL(blob));
+        })
+        .catch(() => { if (!cancelled) setFetchError(true); })
+        .finally(() => { if (!cancelled) setLoading(false); });
+      return () => { cancelled = true; };
+    }
+    if (type === "pdf") {
+      let cancelled = false;
+      let url: string | null = null;
+      setLoading(true);
+      setFetchError(false);
+      setBlobUrl(null);
+      fetch(attachment.downloadUrl, { credentials: "include" })
+        .then((r) => (r.ok ? r.blob() : Promise.reject(r.status)))
+        .then((blob) => {
+          if (cancelled) return;
+          url = URL.createObjectURL(blob);
+          setBlobUrl(url);
+        })
+        .catch(() => { if (!cancelled) setFetchError(true); })
+        .finally(() => { if (!cancelled) setLoading(false); });
+      return () => {
+        cancelled = true;
+        if (url) URL.revokeObjectURL(url);
+      };
+    }
+  }, [attachment?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cleanup blob URL on close
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      setBlobUrl(null);
+      setLoading(false);
+      setFetchError(false);
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={!!attachment} onOpenChange={handleClose}>
+      <DialogContent className="flex h-[92vh] w-[92vw] max-w-5xl flex-col gap-0 overflow-hidden p-0 animate-in fade-in-0 zoom-in-[0.97] duration-200">
+        <DialogHeader className="flex-row items-center gap-4 border-b bg-card px-5 py-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+              <Eye className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-sm font-semibold leading-tight">
+                {attachment?.name}
+              </DialogTitle>
+              <DialogDescription className="text-[11px] leading-tight">
+                Pamja paraprake e dokumentit
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="relative flex-1 overflow-hidden bg-muted/30">
+          {/* Loading */}
+          {loading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur-sm animate-in fade-in-0 duration-150">
+              <div className="relative">
+                <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
+                <Eye className="absolute inset-0 m-auto h-4 w-4 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">Duke ngarkuar dokumentin…</p>
+            </div>
+          )}
+
+          {/* Error */}
+          {fetchError && !loading && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+                <XCircle className="h-7 w-7" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Dokumenti nuk u ngarkua</p>
+                <p className="mt-1 text-xs text-muted-foreground">Provo ta shkarkosh drejtpërsëdrejti.</p>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <a href={attachment?.downloadUrl} download={attachment?.name}>
+                  <Download className="mr-1.5 h-3.5 w-3.5" /> Shkarko
+                </a>
+              </Button>
+            </div>
+          )}
+
+          {/* PDF via blob URL */}
+          {!loading && !fetchError && type === "pdf" && blobUrl && (
+            <iframe
+              key={blobUrl}
+              src={blobUrl}
+              className="h-full w-full border-0 animate-in fade-in-0 duration-300"
+              title={attachment?.name}
+            />
+          )}
+
+          {/* Image via blob URL */}
+          {!loading && !fetchError && type === "image" && blobUrl && (
+            <div className="flex h-full items-center justify-center p-8">
+              <img
+                src={blobUrl}
+                alt={attachment?.name}
+                className="max-h-full max-w-full rounded-md object-contain shadow-md ring-1 ring-border animate-in fade-in-0 zoom-in-95 duration-300"
+              />
+            </div>
+          )}
+
+          {/* Unsupported type */}
+          {!loading && !fetchError && type === "other" && (
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+              <div className="grid h-16 w-16 place-items-center rounded-2xl bg-muted ring-1 ring-border">
+                <FileText className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Ky lloj skedari nuk mund të parapamjet</p>
+                <p className="mt-1 text-xs text-muted-foreground">Shkarkoje për ta hapur me aplikacionin e duhur.</p>
+              </div>
+              <Button asChild variant="outline">
+                <a href={attachment?.downloadUrl} download={attachment?.name}>
+                  <Download className="mr-2 h-4 w-4" /> Shkarko skedarin
+                </a>
+              </Button>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

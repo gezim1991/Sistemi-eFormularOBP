@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import {
   Building2,
@@ -94,8 +95,8 @@ export function ObpPanelPage() {
               f.mbiemri,
               f.nid,
               f.institucioni,
-              f.document?.kodiCPV,
-              f.document?.objektiProkurimit,
+              (f.document as import("@/lib/mock-data").FormularDocumentData | undefined)?.kodiCPV,
+              (f.document as import("@/lib/mock-data").FormularDocumentData | undefined)?.objektiProkurimit,
             ]
               .join(" ")
               .toLowerCase()
@@ -120,7 +121,13 @@ export function ObpPanelPage() {
 
   async function markDownloaded(form: FormRecord) {
     setDownloadingId(form.id);
-    await downloadPdf(form);
+    try {
+      await downloadPdf(form);
+    } catch (err) {
+      toast.error("Shkarkimi dështoi.", {
+        description: err instanceof Error ? err.message : "Provoni sërish.",
+      });
+    }
     setDownloadingId(null);
     refresh().catch(() => null);
   }
@@ -247,10 +254,11 @@ export function ObpPanelPage() {
             const viewed = Boolean(f.opbViewedAt);
             const downloaded = Boolean(f.opbDownloadedAt);
             const fresh = Boolean(f.isNewForMe);
+            const fDoc = f.document as import("@/lib/mock-data").FormularDocumentData | undefined;
             const title =
-              f.document?.titulliProjekti?.trim() ||
+              fDoc?.titulliProjekti?.trim() ||
               f.emerFormulari ||
-              f.document?.objektiProkurimit ||
+              fDoc?.objektiProkurimit ||
               `${f.emri} ${f.mbiemri}`.trim() ||
               f.id;
 
@@ -296,8 +304,8 @@ export function ObpPanelPage() {
                           <Building2 className="h-3 w-3" />
                           {f.institucioni}
                         </span>
-                        {f.document?.kodiCPV && (
-                          <span className="font-mono">CPV: {f.document.kodiCPV}</span>
+                        {fDoc?.kodiCPV && (
+                          <span className="font-mono">CPV: {fDoc.kodiCPV}</span>
                         )}
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="h-3 w-3" />
@@ -325,10 +333,10 @@ export function ObpPanelPage() {
                       className="group/download bg-primary text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[var(--shadow-elevated)]"
                       onClick={() => markDownloaded(f)}
                     >
-                      {downloadingId === f.id && pdfState === "rendering" ? (
+                      {downloadingId === f.id && pdfState === "downloading" ? (
                         <>
                           <span className="mr-1.5 h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                          Duke gjeneruar...
+                          Duke shkarkuar...
                         </>
                       ) : (
                         <>

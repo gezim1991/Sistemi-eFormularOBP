@@ -206,6 +206,29 @@
   opacity: 0;
 }
 
+@keyframes formular-launch-doc {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.88) rotate(-3deg);
+    filter: blur(3px);
+  }
+  42% {
+    opacity: 1;
+    transform: translateY(0) scale(1.02) rotate(1deg);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-34px) scale(1.08) rotate(0deg);
+    filter: blur(1px);
+  }
+}
+
+.formular-launch-doc {
+  animation: formular-launch-doc 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity, filter;
+}
+
 @keyframes empty-state-in {
   0% {
     opacity: 0;
@@ -381,7 +404,8 @@
   }
 
   /* Prevent tables from splitting across printed pages */
-  table, .doc-table-wrap {
+  table,
+  .doc-table-wrap {
     break-inside: avoid;
     page-break-inside: avoid;
   }
