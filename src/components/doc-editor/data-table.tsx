@@ -188,7 +188,7 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
                 }
 
                 return (
-                  <td key={c.key} className="overflow-hidden border-l border-navy/10 p-0 first:border-l-0">
+                  <td key={c.key} className="border-l border-navy/10 p-0 first:border-l-0">
                     {editable && !c.compute ? (
                       <textarea
                         rows={1}
@@ -208,9 +208,9 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
                         placeholder={c.placeholder}
                         inputMode={c.numeric ? "decimal" : "text"}
                         className={cn(
-                          "block w-full resize-none overflow-hidden bg-transparent px-2 py-2 text-[13px] leading-snug outline-none transition-all duration-150 focus:bg-yellow-50 focus:ring-1 focus:ring-yellow-300",
+                          "block min-h-9 w-full resize-none overflow-hidden bg-transparent px-2 py-2 text-[13px] leading-snug outline-none transition-all duration-150 focus:bg-yellow-50 focus:ring-1 focus:ring-yellow-300",
                           c.numeric && "text-right tabular-nums",
-                          "whitespace-pre-wrap break-words [overflow-wrap:break-word] [word-break:normal] [hyphens:none]",
+                          "break-words [overflow-wrap:break-word] [word-break:break-word]",
                           "placeholder:italic placeholder:text-navy/40",
                         )}
                       />
