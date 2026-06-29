@@ -63,11 +63,36 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
   const [search, setSearch] = useState<{ rowId: string; col: Column } | null>(null);
   const [modal, setModal] = useState<{ rowId: string; col: Column } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [colWidths, setColWidths] = useState<Record<string, number | undefined>>({});
+  const [isResizing, setIsResizing] = useState(false);
 
   const setCell = (rowId: string, key: string, value: string) =>
     onChange(rows.map((r) => (r.id === rowId ? { ...r, [key]: value } : r)));
 
   const removeRow = (rowId: string) => onChange(rows.filter((r) => r.id !== rowId));
+
+  const startResize = (e: React.MouseEvent<HTMLDivElement>, colKey: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const th = e.currentTarget.closest("th") as HTMLTableCellElement;
+    const startX = e.clientX;
+    const startWidth = th.getBoundingClientRect().width;
+    setIsResizing(true);
+
+    const onMove = (me: MouseEvent) => {
+      setColWidths((prev) => ({
+        ...prev,
+        [colKey]: Math.max(40, startWidth + me.clientX - startX),
+      }));
+    };
+    const onUp = () => {
+      setIsResizing(false);
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
 
   const filtered = search
     ? (search.col.searchChoices ?? []).filter((c) => {
@@ -82,7 +107,10 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
 
   return (
     <div className="doc-table-wrap mt-3 overflow-hidden rounded-md border border-navy/20 print:rounded-none">
-      <table className="w-full table-fixed border-collapse font-serif text-[13px]">
+      <table
+        className="w-full table-fixed border-collapse font-serif text-[13px]"
+        style={isResizing ? { userSelect: "none", cursor: "col-resize" } : undefined}
+      >
         <thead className="doc-thead">
           <tr className="bg-navy/5">
             {showIndex && (
@@ -93,8 +121,8 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
             {columns.map((c) => (
               <th
                 key={c.key}
-                style={{ width: c.width }}
-                className="group/hdr border-b border-l border-navy/15 px-0 py-0 text-left first:border-l-0"
+                style={{ width: colWidths[c.key] ?? c.width }}
+                className="group/hdr relative border-b border-l border-navy/15 px-0 py-0 text-left first:border-l-0"
               >
                 {onHeadersChange ? (
                   <input
@@ -110,6 +138,10 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
                     {customHeaders?.[c.key] ?? c.header}
                   </span>
                 )}
+                <div
+                  onMouseDown={(e) => startResize(e, c.key)}
+                  className="absolute right-0 top-0 z-10 h-full w-1.5 cursor-col-resize opacity-0 transition-opacity hover:opacity-100 hover:bg-gold/70 print:hidden"
+                />
               </th>
             ))}
             <th className="w-9 border-b border-l border-navy/15 print:hidden" />
@@ -217,7 +249,7 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
                     ) : (
                       <div
                         className={cn(
-                          "min-h-9 break-all px-2 py-2 text-[13px] leading-snug",
+                          "min-h-9 break-words px-2 py-2 text-[13px] leading-snug [overflow-wrap:break-word] [word-break:break-word]",
                           c.compute && "bg-navy/[0.03] text-right font-semibold tabular-nums",
                         )}
                       >
