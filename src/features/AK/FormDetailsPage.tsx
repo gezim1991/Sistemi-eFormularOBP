@@ -5,6 +5,7 @@ import {
   FileText,
   FileDown,
   Maximize2,
+  Pencil,
   Upload,
   CheckCircle2,
   Clock,
@@ -266,6 +267,17 @@ export function FormDetailsPage({ id }: { id: string }) {
           <Button variant="outline" onClick={() => navigate({ to: "/forms" })}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Kthehu te lista
           </Button>
+          {!isOpb && form.canEdit && (
+            <Button
+              asChild
+              variant="outline"
+              className="border-amber-300/60 text-amber-700 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800"
+            >
+              <Link to="/formulare/$id" params={{ id: form.id }}>
+                <Pencil className="mr-2 h-4 w-4" /> Ndrysho formularin
+              </Link>
+            </Button>
+          )}
           {!isOpb && (form.status === "draft" || form.status === "pdf_generated") && (
             <Button
               onClick={onGenerate}
@@ -444,6 +456,18 @@ export function FormDetailsPage({ id }: { id: string }) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
+                {!isOpb && form.canEdit && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    asChild
+                    className="border-amber-300/60 text-amber-700 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800"
+                  >
+                    <Link to="/formulare/$id" params={{ id: form.id }}>
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" /> Ndrysho
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
