@@ -133,10 +133,16 @@ const calculationMethodInfo = {
   ç: METHOD_OPTIONS[3].description,
 };
 
-const CALCULATION_INTRO = [
-  "Llogaritja e vlerës së parashikuar të një prokurimi bazohet në shumën totale që duhet paguar, pa TVSH.",
-  "Në këtë seksion autoriteti / enti kontraktor bën një argumentim të shkurtër mbi metodën e ndjekur për përllogaritjen e vlerës së parashikuar të prokurimit / fondit limit.",
-];
+const CALCULATION_INTRO = `Ne zbatim te parashikimeve te percaktuara ne Vendimin e Keshillit te Ministrave Nr. 285 date 19.05.2021 "Per miratimin e Rregullave te Prokurimit Publik" te ndryshuar, neni 76 "Menyrat per perllogaritjen e vleres se prokurimit" ku citohet:
+
+"1. Ne perllogaritjen e vleres limit te kontrates, autoriteti/enti kontraktor duhet t'i referohet nje ose me shume alternativave te renditura, si me poshte vijon:
+a) cmimet e botuara nga Instituti i Statistikave (INSTAT) ose/dhe cmime te tjera zyrtare, te njohura nga institucionet perkatese; ose/dhe
+b) studimit te tregut, bazuar ne mesataren e cmimeve te marra nga ky studim; ose/dhe
+c) cmimet e kontratave te meparshme, te realizuara nga vete apo nga autoritete te tjera kontraktore; ose/dhe
+cc) cmimet nderkombetar te shpallura publikisht.
+2. Autoriteti/enti kontraktor, perpara nxjerrjes se urdherit te prokurimit, duhet te argumentoje dhe te dokumentoje perllogaritjen e vleres se kontrates.
+3. Per perllogaritjen e vleres limit te kontrates, titullari i autoritetit/entit kontraktor mund te caktoje struktura te posacme."`;
+
 
 /* ───────────────── Helpers ───────────────── */
 
@@ -304,6 +310,10 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
   const [kontaktTel, setKontaktTel] = useState("");
   const [grupiPunes, setGrupiPunes] = useState("");
 
+  const [tableHeaders, setTableHeaders] = useState<Record<string, Record<string, string>>>({});
+  const setTH = (tableId: string) => (headers: Record<string, string>) =>
+    setTableHeaders((prev) => ({ ...prev, [tableId]: headers }));
+
   const hasNeni76Mallra = hasFilledRows(mallraRows);
   const hasNeni76Pune = hasFilledRows(puneRows);
   const hasNeni76Sherbime = hasFilledRows(sherbimeRows);
@@ -354,6 +364,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
     if (doc?.neni76BRows?.length) setNeni76BRows(doc.neni76BRows as Row[]);
     if (doc?.neni76CRows?.length) setNeni76CRows(doc.neni76CRows as Row[]);
     if (doc?.neni76CcRows?.length) setNeni76CcRows(doc.neni76CcRows as Row[]);
+    if (doc?.tableHeaders) setTableHeaders(doc.tableHeaders);
     setGrafiku(doc?.grafiku || "");
     setGrafikuFileName(doc?.grafikuFileName || "");
     setKontaktEmer(
@@ -511,6 +522,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
       neni76BRows: neni76BRows as Array<Record<string, string>>,
       neni76CRows: neni76CRows as Array<Record<string, string>>,
       neni76CcRows: neni76CcRows as Array<Record<string, string>>,
+      tableHeaders,
       grafiku,
       grafikuFileName,
       kontaktEmer,
@@ -724,7 +736,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
             </div>
             <DataTable
               columns={[
-                { key: "zgjedhja", header: "Zgjidh llojin e aktit", editable: false, width: "30%" },
+                { key: "zgjedhja", header: "Zgjidh llojin e aktit", width: "30%", placeholder: "p.sh. Ligj, Vendim KM..." },
                 { key: "numri", header: "Numri i aktit", placeholder: "p.sh. 162" },
                 { key: "data", header: "Data / Viti", placeholder: "23.12.2020" },
                 { key: "titulli", header: "Titulli" },
@@ -732,6 +744,8 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
               ]}
               rows={bazaRows}
               onChange={setBazaRows}
+              customHeaders={tableHeaders.baza}
+              onHeadersChange={setTH("baza")}
             />
           </Section>
         </Page>
@@ -742,7 +756,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
             <DataTable
               showIndex
               columns={[
-                { key: "emertimi", header: "Emërtimi i artikullit" },
+                { key: "emertimi", header: "Emërtimi i artikullit / Shërbimit" },
                 { key: "njesia", header: "Njësia", width: "14%" },
                 { key: "sasia", header: "Sasia", width: "14%", numeric: true },
                 {
@@ -760,6 +774,8 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
               ]}
               rows={tab1Rows}
               onChange={setTab1Rows}
+              customHeaders={tableHeaders.tab1}
+              onHeadersChange={setTH("tab1")}
             />
           </Section>
         </Page>
@@ -785,6 +801,8 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
               ]}
               rows={tab2Rows}
               onChange={setTab2Rows}
+              customHeaders={tableHeaders.tab2}
+              onHeadersChange={setTH("tab2")}
             />
           </Section>
         </Page>
@@ -792,9 +810,7 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
         <Page index={6} total={8} address={adresaFooter} onAddressChange={setAdresaFooter}>
           <Section title="III. PËRLLOGARITJA E VLERËS SË PARASHIKUAR">
             <div className="space-y-3 font-serif text-[14px] leading-relaxed">
-              {CALCULATION_INTRO.map((p) => (
-                <p key={p}>{p}</p>
-              ))}
+              <p className="whitespace-pre-line">{CALCULATION_INTRO}</p>
             </div>
 
             <div className="mt-5 font-sans">
@@ -820,7 +836,12 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
                   selected={mallraSel}
                   onChange={onMallraChange}
                 />
-                <ValueReferenceTable rows={mallraRows} onChange={setMallraRows} />
+                <ValueReferenceTable
+                  rows={mallraRows}
+                  onChange={setMallraRows}
+                  customHeaders={tableHeaders.mallra}
+                  onHeadersChange={setTH("mallra")}
+                />
               </SlidePanel>
               <ToggleButton
                 active={neni76AOpen === "pune" || hasNeni76Pune}
@@ -835,7 +856,12 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
                   selected={puneSel}
                   onChange={onPuneChange}
                 />
-                <ValueReferenceTable rows={puneRows} onChange={setPuneRows} />
+                <ValueReferenceTable
+                  rows={puneRows}
+                  onChange={setPuneRows}
+                  customHeaders={tableHeaders.pune}
+                  onHeadersChange={setTH("pune")}
+                />
               </SlidePanel>
               <ToggleButton
                 active={neni76AOpen === "sherbime" || hasNeni76Sherbime}
@@ -850,7 +876,12 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
                   selected={sherbimeSel}
                   onChange={onSherbimeChange}
                 />
-                <ValueReferenceTable rows={sherbimeRows} onChange={setSherbimeRows} />
+                <ValueReferenceTable
+                  rows={sherbimeRows}
+                  onChange={setSherbimeRows}
+                  customHeaders={tableHeaders.sherbime}
+                  onHeadersChange={setTH("sherbime")}
+                />
               </SlidePanel>
             </SlidePanel>
 
@@ -888,6 +919,8 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
                   ]}
                   rows={neni76BRows}
                   onChange={setNeni76BRows}
+                  customHeaders={tableHeaders.neni76b}
+                  onHeadersChange={setTH("neni76b")}
                   footerRow={{ label: "Totali (pa TVSH)", compute: sumTotalsFromAverageOffers }}
                 />
               </SlidePanel>
@@ -916,6 +949,8 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
                   ]}
                   rows={neni76CRows}
                   onChange={setNeni76CRows}
+                  customHeaders={tableHeaders.neni76c}
+                  onHeadersChange={setTH("neni76c")}
                   footerRow={{ label: "Totali (pa TVSH)", compute: sumTotals }}
                 />
               </SlidePanel>
@@ -946,6 +981,8 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
                   ]}
                   rows={neni76CcRows}
                   onChange={setNeni76CcRows}
+                  customHeaders={tableHeaders.neni76cc}
+                  onHeadersChange={setTH("neni76cc")}
                   footerRow={{ label: "Totali (pa TVSH)", compute: sumTotals }}
                 />
               </SlidePanel>
@@ -1116,20 +1153,32 @@ function SlidePanel({ open, children }: { open: boolean; children: React.ReactNo
   );
 }
 
-function ValueReferenceTable({ rows, onChange }: { rows: Row[]; onChange: (rows: Row[]) => void }) {
+function ValueReferenceTable({
+  rows,
+  onChange,
+  customHeaders,
+  onHeadersChange,
+}: {
+  rows: Row[];
+  onChange: (rows: Row[]) => void;
+  customHeaders?: Record<string, string>;
+  onHeadersChange?: (headers: Record<string, string>) => void;
+}) {
   return (
     <DataTable
       columns={[
-        { key: "manuali", header: "Manuali / Katalogu", editable: false, width: "22%" },
+        { key: "manuali", header: "Manuali / Katalogu", width: "22%", placeholder: "p.sh. OBP, AKSHI..." },
         { key: "nrRendor", header: "Nr. Rendor", width: "17%" },
-        { key: "emertimi", header: "Emërtimi", width: "15%" },
-        { key: "njesia", header: "Njësia", width: "10%" },
+        { key: "emertimi", header: "Emertimi", width: "15%" },
+        { key: "njesia", header: "Njesia", width: "10%" },
         { key: "sasia", header: "Sasia", width: "10%", numeric: true },
-        { key: "cmimi", header: "Çmimi/njësi", width: "14%", numeric: true },
+        { key: "cmimi", header: "Cmimi/njesi", width: "14%", numeric: true },
         { key: "vlera", header: "Vlera totale", width: "14%", numeric: true, compute: rowTotal },
       ]}
       rows={rows}
       onChange={onChange}
+      customHeaders={customHeaders}
+      onHeadersChange={onHeadersChange}
       footerRow={{ label: "Totali (pa TVSH)", compute: sumTotals }}
     />
   );

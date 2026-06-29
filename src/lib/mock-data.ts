@@ -39,4 +39,7 @@ export interface FormularDocumentData {
   kontaktEmail: string;
   kontaktTel: string;
   grupiPunes: string;
+
+  /** Custom column headers per table. Key = tableId, value = { colKey: label } */
+  tableHeaders?: Record<string, Record<string, string>>;
 }

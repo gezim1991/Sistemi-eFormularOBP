@@ -1,6 +1,6 @@
 import type { FormRecord } from "@/lib/forms-types";
 
-function fmtDate(iso?: string) {
+function fmtDate(iso?: string | null) {
   if (!iso) return "—";
   try {
     return new Date(iso).toLocaleDateString("sq-AL", {
@@ -93,7 +93,7 @@ function Row({
   full,
 }: {
   label: string;
-  value: string;
+  value: string | null | undefined;
   mono?: boolean;
   full?: boolean;
 }) {

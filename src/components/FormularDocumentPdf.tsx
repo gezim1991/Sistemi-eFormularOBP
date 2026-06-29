@@ -124,7 +124,7 @@ function PdfSection({ title, children }: { title: string; children: React.ReactN
 }
 
 /* ── Body text paragraph ── */
-function Body({ children, italic }: { children: React.ReactNode; italic?: boolean }) {
+function Body({ children, italic, pre }: { children: React.ReactNode; italic?: boolean; pre?: boolean }) {
   return (
     <p
       style={{
@@ -132,6 +132,7 @@ function Body({ children, italic }: { children: React.ReactNode; italic?: boolea
         lineHeight: 1.6,
         marginBottom: 8,
         fontStyle: italic ? "italic" : "normal",
+        whiteSpace: pre ? "pre-line" : undefined,
         ...TNR,
       }}
     >
@@ -378,6 +379,9 @@ export function FormularDocumentPdf({ document }: { document: Doc }) {
       {/* PAGE 6 — III. Përllogaritja gërmë a */}
       <PdfPage index={6} total={TOTAL_PAGES} address={addr}>
         <PdfSection title="III.     PËRLLOGARITJA E VLERËS SË PARASHIKUAR TË PROKURIMIT">
+          <Body pre>
+            {`Në zbatim të parashikimeve të përcaktuara në Vendimin e Këshillit të Ministrave Nr. 285 datë 19.05.2021 "Për miratimin e Rregullave të Prokurimit Publik" të ndryshuar, neni 76 "Mënyrat për përllogaritjen e vlerës së prokurimit" ku citohet:\n\n"1. Në përllogaritjen e vlerës limit të kontratës, autoriteti/enti kontraktor duhet t'i referohet një ose më shumë alternativave të renditura, si më poshtë vijon:\na) çmimet e botuara nga Instituti i Statistikave (INSTAT) ose/dhe çmime të tjera zyrtare, të njohura nga institucionet përkatëse (si për shembull, nga organet tatimore a doganore, dhomat e tregtisë, në manuale etj.); ose/dhe\nb) studimit të tregut, bazuar në mesataren e çmimeve të marra nga ky studim; ose/dhe\nc) çmimet e kontratave të mëparshme, të realizuara nga vetë apo nga autoritete të tjera kontraktore; ose/dhe\nç) çmimet ndërkombëtare të shpallura publikisht. Autoriteti/enti kontraktor mund t'i referohet një ose me shumë alternativave të mësipërme në përllogaritjen e vlerës limit të kontratës, me qëllim që ajo të jetë një vlerë reale për kushtet e tregut dhe njëkohësisht të krijojë mundësinë e pjesëmarrjes së sa më shumë operatorëve ekonomikë.\n2. Autoriteti/enti kontraktor, përpara nxjerrjes së urdhrit të prokurimit, duhet të argumentojë dhe të dokumentojë përllogaritjen e vlerës së kontratës, bazuar në specifikimet teknike të objektit që prokurohet.\n3. Për përllogaritjen e vlerës limit të kontratës, titullari i autoritetit/entit kontraktor mund të caktojë struktura të posaçme. Në rast se nuk ngrihen struktura të posaçme, kjo detyrë i ngarkohet specialistit të fushës ose njësisë së prokurimit."`}
+          </Body>
           {d.mallraRows.some(hasContent) && (
             <>
               <Body italic>Shembull 1 – Përllogaritja sipas gërmës "a" të nenit 76</Body>

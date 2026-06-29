@@ -44,6 +44,10 @@ interface Props {
   onChange: (rows: Row[]) => void;
   showIndex?: boolean;
   footerRow?: { label: string; compute: (rows: Row[]) => string };
+  /** Current header overrides: colKey → label */
+  customHeaders?: Record<string, string>;
+  /** Called when a header cell is edited */
+  onHeadersChange?: (headers: Record<string, string>) => void;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -55,7 +59,7 @@ const uid = () => Math.random().toString(36).slice(2, 9);
  * an optional footer row. Micro-interactions: row pop-in on add, hover
  * elevation, focus ring on cells.
  */
-export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Props) {
+export function DataTable({ columns, rows, onChange, showIndex, footerRow, customHeaders, onHeadersChange }: Props) {
   const [search, setSearch] = useState<{ rowId: string; col: Column } | null>(null);
   const [modal, setModal] = useState<{ rowId: string; col: Column } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,9 +94,22 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow }: Pro
               <th
                 key={c.key}
                 style={{ width: c.width }}
-                className="border-b border-l border-navy/15 px-2 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-navy first:border-l-0"
+                className="group/hdr border-b border-l border-navy/15 px-0 py-0 text-left first:border-l-0"
               >
-                {c.header}
+                {onHeadersChange ? (
+                  <input
+                    value={customHeaders?.[c.key] ?? c.header}
+                    onChange={(e) =>
+                      onHeadersChange({ ...(customHeaders ?? {}), [c.key]: e.target.value })
+                    }
+                    title="Klikoni për të ndryshuar titullin e kolonës"
+                    className="w-full bg-transparent px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-navy outline-none transition-colors hover:bg-yellow-50 focus:bg-yellow-100 focus:ring-1 focus:ring-yellow-300 print:pointer-events-none"
+                  />
+                ) : (
+                  <span className="block px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-navy">
+                    {customHeaders?.[c.key] ?? c.header}
+                  </span>
+                )}
               </th>
             ))}
             <th className="w-9 border-b border-l border-navy/15 print:hidden" />
