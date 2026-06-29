@@ -125,16 +125,26 @@ export function DataTable({ columns, rows, onChange, showIndex, footerRow, custo
                 className="group/hdr relative border-b border-l border-navy/15 px-0 py-0 text-left first:border-l-0"
               >
                 {onHeadersChange ? (
-                  <input
+                  <textarea
+                    rows={1}
                     value={customHeaders?.[c.key] ?? c.header}
-                    onChange={(e) =>
-                      onHeadersChange({ ...(customHeaders ?? {}), [c.key]: e.target.value })
-                    }
+                    onChange={(e) => {
+                      onHeadersChange({ ...(customHeaders ?? {}), [c.key]: e.target.value });
+                      const el = e.currentTarget;
+                      el.style.height = "auto";
+                      el.style.height = el.scrollHeight + "px";
+                    }}
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = "auto";
+                        el.style.height = el.scrollHeight + "px";
+                      }
+                    }}
                     title="Klikoni për të ndryshuar titullin e kolonës"
-                    className="w-full bg-transparent px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-navy outline-none transition-colors hover:bg-yellow-50 focus:bg-yellow-100 focus:ring-1 focus:ring-yellow-300 print:pointer-events-none"
+                    className="block w-full resize-none overflow-hidden bg-transparent px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-navy outline-none transition-colors break-words [overflow-wrap:break-word] [word-break:break-word] hover:bg-yellow-50 focus:bg-yellow-100 focus:ring-1 focus:ring-yellow-300 print:pointer-events-none"
                   />
                 ) : (
-                  <span className="block px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-navy">
+                  <span className="block break-words px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-navy [overflow-wrap:break-word] [word-break:break-word]">
                     {customHeaders?.[c.key] ?? c.header}
                   </span>
                 )}
