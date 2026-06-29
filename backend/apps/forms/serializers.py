@@ -37,11 +37,13 @@ class FormSerializer(serializers.ModelSerializer):
     isNewForMe = serializers.SerializerMethodField()
 
     # Permission flags
+    attachments = serializers.SerializerMethodField()
     canEdit = serializers.SerializerMethodField()
     canGeneratePdf = serializers.SerializerMethodField()
     canUploadSigned = serializers.SerializerMethodField()
     canSubmitToOpb = serializers.SerializerMethodField()
     canDownloadPdf = serializers.SerializerMethodField()
+    canUploadAttachment = serializers.SerializerMethodField()
 
     class Meta:
         model = Form
@@ -56,9 +58,10 @@ class FormSerializer(serializers.ModelSerializer):
             "createdAt", "updatedAt",
             "pdfGeneratedAt", "signedUploadedAt", "submittedToOpbAt",
             "signedFileName", "signedFileSize",
+            "attachments",
             "opbViewedAt", "opbDownloadedAt", "isNewForMe",
             "canEdit", "canGeneratePdf", "canUploadSigned",
-            "canSubmitToOpb", "canDownloadPdf",
+            "canSubmitToOpb", "canDownloadPdf", "canUploadAttachment",
         ]
 
     # ---- institutions ----
@@ -135,6 +138,29 @@ class FormSerializer(serializers.ModelSerializer):
     def get_canDownloadPdf(self, obj):
         user = self._user()
         return bool(user and obj.can_download_pdf(user))
+
+    def get_canUploadAttachment(self, obj):
+        user = self._user()
+        return bool(user and obj.can_upload_attachment(user))
+
+    # ---- attachments ----
+    def get_attachments(self, obj):
+        request = self.context.get("request")
+        if not request or not obj.can_view_attachments(request.user):
+            return []
+        docs = obj.document_files.filter(file_type="attachment").order_by("created_at")
+        base = request.build_absolute_uri("/").rstrip("/")
+        return [
+            {
+                "id": d.pk,
+                "name": d.original_name,
+                "size": d.size,
+                "contentType": d.content_type,
+                "uploadedAt": d.created_at.isoformat(),
+                "downloadUrl": f"{base}/api/forms/{obj.public_id}/attachments/{d.pk}/download/",
+            }
+            for d in docs
+        ]
 
 
 class FormWriteSerializer(serializers.ModelSerializer):

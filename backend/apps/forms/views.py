@@ -269,6 +269,71 @@ class FormViewSet(ViewSet):
         out = FormSerializer(form, context={"request": request})
         return Response(out.data)
 
+    # ---- UPLOAD ATTACHMENT ----
+    @action(detail=True, methods=["post"], url_path="upload-attachment")
+    def upload_attachment(self, request, pk=None):
+        form = self._get_form(request.user, pk)
+        if not form.can_upload_attachment(request.user):
+            return Response(
+                {"detail": "Nuk keni leje per te ngarkuar bashkelidhes."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        uploaded = request.FILES.get("file")
+        if not uploaded:
+            return Response({"detail": "Nuk u ngarkua asnje skedar."}, status=status.HTTP_400_BAD_REQUEST)
+        max_bytes = getattr(settings, "MAX_UPLOAD_SIZE_BYTES", 10 * 1024 * 1024)
+        if uploaded.size > max_bytes:
+            mb = max_bytes // (1024 * 1024)
+            return Response({"detail": f"Madhesia maksimale e lejuar eshte {mb} MB."}, status=status.HTTP_400_BAD_REQUEST)
+        doc_file = DocumentFile(
+            form=form,
+            file_type=DocumentFile.ATTACHMENT,
+            original_name=uploaded.name,
+            size=uploaded.size,
+            content_type=uploaded.content_type or "application/octet-stream",
+            uploaded_by=request.user,
+        )
+        doc_file.file.save(uploaded.name, uploaded, save=True)
+        log_action(request, "upload_attachment", "form", form.public_id, {"filename": uploaded.name, "size": uploaded.size})
+        out = FormSerializer(form, context={"request": request})
+        return Response(out.data, status=status.HTTP_201_CREATED)
+
+    # ---- DELETE ATTACHMENT ----
+    @action(detail=True, methods=["delete"], url_path=r"attachments/(?P<attachment_id>[0-9]+)")
+    def delete_attachment(self, request, pk=None, attachment_id=None):
+        form = self._get_form(request.user, pk)
+        if not form.can_delete_attachment(request.user):
+            return Response({"detail": "Nuk keni leje."}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            doc = form.document_files.get(pk=attachment_id, file_type=DocumentFile.ATTACHMENT)
+        except DocumentFile.DoesNotExist:
+            return Response({"detail": "Bashkelidhesi nuk u gjet."}, status=status.HTTP_404_NOT_FOUND)
+        doc.delete()
+        log_action(request, "delete_attachment", "form", form.public_id)
+        out = FormSerializer(form, context={"request": request})
+        return Response(out.data)
+
+    # ---- DOWNLOAD ATTACHMENT ----
+    @action(detail=True, methods=["get"], url_path=r"attachments/(?P<attachment_id>[0-9]+)/download")
+    def download_attachment(self, request, pk=None, attachment_id=None):
+        form = self._get_form(request.user, pk)
+        if not form.can_view_attachments(request.user):
+            return Response({"detail": "Nuk keni leje."}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            doc = form.document_files.get(pk=attachment_id, file_type=DocumentFile.ATTACHMENT)
+        except DocumentFile.DoesNotExist:
+            return Response({"detail": "Bashkelidhesi nuk u gjet."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            file_handle = doc.file.open("rb")
+            return FileResponse(
+                file_handle,
+                content_type=doc.content_type or "application/octet-stream",
+                as_attachment=True,
+                filename=doc.original_name,
+            )
+        except FileNotFoundError:
+            return Response({"detail": "Skedari nuk u gjet."}, status=status.HTTP_404_NOT_FOUND)
+
     # ---- SUBMIT TO OPB ----
     @action(detail=True, methods=["post"], url_path="submit-to-opb")
     def submit_to_opb(self, request, pk=None):

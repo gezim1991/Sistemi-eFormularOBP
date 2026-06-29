@@ -9,6 +9,15 @@ export type FormStatus =
 
 import type { FormularDocumentData } from "./mock-data";
 
+export interface AttachmentRecord {
+  id: number;
+  name: string;
+  size: number;
+  contentType: string;
+  uploadedAt: string;
+  downloadUrl: string;
+}
+
 export interface FormRecord {
   id: string;
   emri: string;
@@ -36,12 +45,15 @@ export interface FormRecord {
   opbViewedAt?: string | null;
   opbDownloadedAt?: string | null;
   isNewForMe?: boolean;
+  // Attachments
+  attachments?: AttachmentRecord[];
   // Permission flags from backend
   canEdit?: boolean;
   canGeneratePdf?: boolean;
   canUploadSigned?: boolean;
   canSubmitToOpb?: boolean;
   canDownloadPdf?: boolean;
+  canUploadAttachment?: boolean;
 }
 
 export const STATUS_META: Record<

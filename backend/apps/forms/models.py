@@ -122,6 +122,29 @@ class Form(models.Model):
             return self.status == self.SUBMITTED_TO_OPB
         return False
 
+    def can_upload_attachment(self, user):
+        if user.is_admin:
+            return True
+        if user.is_ak and self.created_by_id == user.pk:
+            return self.status != self.ARCHIVED
+        return False
+
+    def can_delete_attachment(self, user):
+        if user.is_admin:
+            return True
+        if user.is_ak and self.created_by_id == user.pk:
+            return self.status != self.ARCHIVED
+        return False
+
+    def can_view_attachments(self, user):
+        if user.is_admin:
+            return True
+        if user.is_ak and self.created_by_id == user.pk:
+            return True
+        if user.is_opb:
+            return self.status == self.SUBMITTED_TO_OPB
+        return False
+
 
 class FormOpbActivity(models.Model):
     form = models.ForeignKey(

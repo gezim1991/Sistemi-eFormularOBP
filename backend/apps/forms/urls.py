@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from .views import FormViewSet
 
 form_list = FormViewSet.as_view({"get": "list", "post": "create"})
@@ -14,6 +14,9 @@ upload_signed = FormViewSet.as_view({"post": "upload_signed"})
 submit_to_opb = FormViewSet.as_view({"post": "submit_to_opb"})
 mark_viewed = FormViewSet.as_view({"post": "mark_viewed"})
 opb_summary = FormViewSet.as_view({"get": "opb_summary"})
+upload_attachment = FormViewSet.as_view({"post": "upload_attachment"})
+delete_attachment = FormViewSet.as_view({"delete": "delete_attachment"})
+download_attachment = FormViewSet.as_view({"get": "download_attachment"})
 
 urlpatterns = [
     path("", form_list, name="form-list"),
@@ -24,4 +27,7 @@ urlpatterns = [
     path("<str:pk>/upload-signed/", upload_signed, name="form-upload-signed"),
     path("<str:pk>/submit-to-opb/", submit_to_opb, name="form-submit-to-opb"),
     path("<str:pk>/mark-viewed/", mark_viewed, name="form-mark-viewed"),
+    path("<str:pk>/upload-attachment/", upload_attachment, name="form-upload-attachment"),
+    re_path(r"^(?P<pk>[^/]+)/attachments/(?P<attachment_id>[0-9]+)/$", delete_attachment, name="form-delete-attachment"),
+    re_path(r"^(?P<pk>[^/]+)/attachments/(?P<attachment_id>[0-9]+)/download/$", download_attachment, name="form-download-attachment"),
 ]

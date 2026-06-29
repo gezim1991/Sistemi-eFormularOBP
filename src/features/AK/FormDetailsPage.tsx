@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   FileText,
   FileDown,
   Maximize2,
+  Paperclip,
   Pencil,
+  Trash2,
   Upload,
   CheckCircle2,
   Clock,
+  Download,
+  Loader2,
   XCircle,
   ShieldCheck,
   Send,
@@ -94,19 +98,32 @@ function FormularFlyOverlay({ from, to }: { from: FlyBox; to?: FlyBox }) {
 }
 
 export function FormDetailsPage({ id }: { id: string }) {
-  const { getById, setStatus, update } = useForms();
+  const { getById, setStatus } = useForms();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { download: downloadPdf, pdfState } = useFormPdfDownload();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [previewKey, setPreviewKey] = useState(0);
   const [previewPulse, setPreviewPulse] = useState(false);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [fly, setFly] = useState<{ from: FlyBox; to?: FlyBox } | null>(null);
 
-  const form = getById(id);
+  const cachedForm = getById(id);
+  const [freshForm, setFreshForm] = useState<ReturnType<typeof getById>>(undefined);
+  const form = freshForm ?? cachedForm;
   const isOpb = user?.role === "opb";
+
+  // Always fetch fresh form data on mount so canUploadAttachment / attachments are up-to-date
+  useEffect(() => {
+    formsApi.get(id).then((data) => {
+      setFreshForm(data);
+      setStatus(id, data.status).catch(() => null);
+    }).catch(() => null);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Mark as viewed server-side when OPB opens the form
   useEffect(() => {
@@ -242,6 +259,35 @@ export function FormDetailsPage({ id }: { id: string }) {
       }
       window.setTimeout(() => setFly(null), 500);
     }, FLIGHT_MS);
+  };
+
+  const handleUploadAttachment = async (file: File) => {
+    if (!form) return;
+    setUploadingAttachment(true);
+    try {
+      await formsApi.uploadAttachment(form.id, file);
+      await setStatus(form.id, form.status);
+      toast.success(`"${file.name}" u ngarkua.`);
+    } catch (err) {
+      toast.error("Ngarkimi dështoi.", { description: err instanceof Error ? err.message : "Provoni sërish." });
+    } finally {
+      setUploadingAttachment(false);
+      if (attachmentInputRef.current) attachmentInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: number) => {
+    if (!form) return;
+    setDeletingAttachmentId(attachmentId);
+    try {
+      await formsApi.deleteAttachment(form.id, attachmentId);
+      await setStatus(form.id, form.status);
+      toast.success("Bashkëlidhësi u fshi.");
+    } catch (err) {
+      toast.error("Fshirja dështoi.", { description: err instanceof Error ? err.message : "Provoni sërish." });
+    } finally {
+      setDeletingAttachmentId(null);
+    }
   };
 
   const doc = form.document;
@@ -490,6 +536,7 @@ export function FormDetailsPage({ id }: { id: string }) {
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Sidebar info */}
@@ -534,6 +581,86 @@ export function FormDetailsPage({ id }: { id: string }) {
               </ol>
             </div>
           )}
+
+          {/* Attachments card */}
+          <div className="rounded-xl border bg-card shadow-[var(--shadow-card)]">
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Paperclip className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Bashkëlidhës</h3>
+                {form.attachments && form.attachments.length > 0 && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                    {form.attachments.length}
+                  </span>
+                )}
+              </div>
+              {form.canUploadAttachment && (
+                <>
+                  <input
+                    ref={attachmentInputRef}
+                    type="file"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadAttachment(file);
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={uploadingAttachment}
+                    onClick={() => attachmentInputRef.current?.click()}
+                  >
+                    {uploadingAttachment ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="mr-1.5 h-3.5 w-3.5" />
+                    )}
+                    Ngarko
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="divide-y px-4">
+              {!form.attachments || form.attachments.length === 0 ? (
+                <p className="py-5 text-center text-xs text-muted-foreground">
+                  Nuk ka bashkëlidhës.
+                </p>
+              ) : (
+                form.attachments.map((att) => (
+                  <div key={att.id} className="flex items-center gap-2 py-2.5">
+                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium">{att.name}</p>
+                      <p className="text-xs text-muted-foreground">{fmtSize(att.size)}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-0.5">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" asChild>
+                        <a href={att.downloadUrl} download={att.name} target="_blank" rel="noreferrer">
+                          <Download className="h-3.5 w-3.5" />
+                        </a>
+                      </Button>
+                      {form.canUploadAttachment && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive/70 hover:text-destructive"
+                          disabled={deletingAttachmentId === att.id}
+                          onClick={() => handleDeleteAttachment(att.id)}
+                        >
+                          {deletingAttachmentId === att.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
           <div className="rounded-xl border bg-card p-5 shadow-[var(--shadow-card)]">
             <h3 className="text-sm font-semibold">Detaje</h3>

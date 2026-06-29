@@ -49,6 +49,18 @@ export const formsApi = {
     });
   },
 
+  uploadAttachment: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return apiJson<FormRecord>(`/forms/${id}/upload-attachment/`, { method: "POST", body: fd });
+  },
+
+  deleteAttachment: (id: string, attachmentId: number) =>
+    apiJson<FormRecord>(`/forms/${id}/attachments/${attachmentId}/`, { method: "DELETE" }),
+
+  downloadAttachmentUrl: (id: string, attachmentId: number) =>
+    `${API_BASE}/forms/${id}/attachments/${attachmentId}/download/`,
+
   submitToOpb: (id: string) =>
     apiJson<FormRecord>(`/forms/${id}/submit-to-opb/`, { method: "POST" }),
 

@@ -1055,8 +1055,8 @@ function Page({
 }) {
   return (
     <div
-      className="relative mx-auto w-full animate-[fade-in_280ms_ease-out] bg-white px-10 py-12 shadow-md ring-1 ring-border transition-shadow duration-200 hover:shadow-lg print:shadow-none sm:px-16"
-      style={{ minHeight: "1123px", width: "794px" }}
+      className="mx-auto flex w-full animate-[fade-in_280ms_ease-out] flex-col bg-white px-10 py-12 shadow-md ring-1 ring-border transition-shadow duration-200 hover:shadow-lg print:shadow-none sm:px-16"
+      style={{ width: "794px", minHeight: "1123px" }}
     >
       {index === 1 && (
         <p className="font-serif text-[14px] font-bold text-navy">
@@ -1064,26 +1064,22 @@ function Page({
           <sup className="text-[9px]">1</sup>
         </p>
       )}
-      <div className="pb-24">{children}</div>
-      <div className="absolute inset-x-10 bottom-6 sm:inset-x-16">
-        <div className="border-t border-foreground/20 pt-2 text-center">
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => onAddressChange(e.target.value)}
-            placeholder="Adresa e autoritetit / entit kontraktor"
-            className={
-              "w-full text-center italic outline-none rounded-sm px-2 py-0.5 transition-all duration-200 focus:ring-2 focus:ring-yellow-300 placeholder:italic placeholder:text-navy/60 " +
-              (address.trim()
-                ? "bg-transparent text-foreground/80 hover:bg-yellow-50 focus:bg-yellow-100/80 focus:not-italic"
-                : "border border-yellow-400/70 bg-yellow-100/80 text-navy animate-pulse")
-            }
-            style={{ fontFamily: '"Times New Roman", Times, serif', fontSize: "10pt" }}
-          />
-          <div className="mt-1 text-[10px] text-muted-foreground">
-            Faqe {index} / {total}
-          </div>
-        </div>
+      <div className="flex-1">{children}</div>
+      <div className="mt-10 border-t border-foreground/20 pt-2 text-center">
+        <input
+          type="text"
+          value={address}
+          onChange={(e) => onAddressChange(e.target.value)}
+          placeholder="Adresa e autoritetit / entit kontraktor"
+          className={
+            "w-full rounded-sm px-2 py-0.5 text-center italic outline-none transition-all duration-200 focus:ring-2 focus:ring-yellow-300 placeholder:italic placeholder:text-navy/60 " +
+            (address.trim()
+              ? "bg-transparent text-foreground/80 hover:bg-yellow-50 focus:bg-yellow-100/80 focus:not-italic"
+              : "animate-pulse border border-yellow-400/70 bg-yellow-100/80 text-navy")
+          }
+          style={{ fontFamily: '"Times New Roman", Times, serif', fontSize: "10pt" }}
+        />
+        <div className="mt-1 text-[10px] text-muted-foreground">Faqe {index} / {total}</div>
       </div>
     </div>
   );
