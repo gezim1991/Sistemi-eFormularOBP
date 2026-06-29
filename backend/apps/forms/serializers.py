@@ -149,7 +149,6 @@ class FormSerializer(serializers.ModelSerializer):
         if not request or not obj.can_view_attachments(request.user):
             return []
         docs = obj.document_files.filter(file_type="attachment").order_by("created_at")
-        base = request.build_absolute_uri("/").rstrip("/")
         return [
             {
                 "id": d.pk,
@@ -157,7 +156,7 @@ class FormSerializer(serializers.ModelSerializer):
                 "size": d.size,
                 "contentType": d.content_type,
                 "uploadedAt": d.created_at.isoformat(),
-                "downloadUrl": f"{base}/api/forms/{obj.public_id}/attachments/{d.pk}/download/",
+                "downloadUrl": f"/api/forms/{obj.public_id}/attachments/{d.pk}/download/",
             }
             for d in docs
         ]
