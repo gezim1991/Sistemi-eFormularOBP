@@ -37,6 +37,7 @@ import { UploadBox } from "@/components/UploadBox";
 import { useAuth } from "@/lib/auth-store";
 import { useForms } from "@/lib/forms-store";
 import { formsApi } from "@/lib/api/forms";
+import { apiFetch } from "@/lib/api/client";
 import { useFormPdfDownload } from "@/lib/use-form-pdf-download";
 import type { FormDoc } from "@/lib/document-types";
 import { toast } from "sonner";
@@ -905,7 +906,7 @@ function AttachmentViewerModal({
       let cancelled = false;
       setLoading(true);
       setFetchError(false);
-      fetch(attachment.downloadUrl, { credentials: "include" })
+      apiFetch(attachment.downloadUrl.replace(/^\/api/, ""))
         .then((r) => (r.ok ? r.blob() : Promise.reject(r.status)))
         .then((blob) => {
           if (!cancelled) setBlobUrl(URL.createObjectURL(blob));
@@ -920,7 +921,7 @@ function AttachmentViewerModal({
       setLoading(true);
       setFetchError(false);
       setBlobUrl(null);
-      fetch(attachment.downloadUrl, { credentials: "include" })
+      apiFetch(attachment.downloadUrl.replace(/^\/api/, ""))
         .then((r) => (r.ok ? r.blob() : Promise.reject(r.status)))
         .then((blob) => {
           if (cancelled) return;
