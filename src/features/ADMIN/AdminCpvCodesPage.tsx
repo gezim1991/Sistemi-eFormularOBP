@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { Hash, Layers, Pencil, Plus, Search, Tags, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Hash, Layers, Loader2, Pencil, Plus, Search, Tags, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { EmptyStateMotion } from "@/components/EmptyStateMotion";
@@ -120,6 +120,8 @@ function CpvCodesManager({
 }) {
   const [showForm, setShowForm] = useState(false);
   const [editCode, setEditCode] = useState<ApiCpvCode | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pageCount = useMemo(() => Math.max(1, Math.ceil(count / PAGE_SIZE)), [count]);
 
@@ -131,6 +133,21 @@ function CpvCodesManager({
       onRefresh();
     } catch {
       toast.error("Gabim gjatë fshirjes");
+    }
+  }
+
+  async function handleImportFile(file: File) {
+    setImporting(true);
+    try {
+      const r = await cpvApi.importCsv(file);
+      toast.success(
+        `Importi përfundoi: ${r.created} shtuar, ${r.updated} përditësuar${r.skipped ? `, ${r.skipped} anashkaluar` : ""}`,
+      );
+      onRefresh();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Gabim gjatë importit të CSV-së");
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -163,9 +180,35 @@ function CpvCodesManager({
             />
           </div>
           <p className="text-xs text-muted-foreground">{count} kode CPV</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) handleImportFile(file);
+            }}
+          />
           <Button
             size="sm"
-            className="group lg:ml-auto"
+            variant="outline"
+            className="lg:ml-auto"
+            disabled={importing}
+            onClick={() => fileInputRef.current?.click()}
+            title="Importo grup kodesh nga një file CSV (kolonat: group, name, code)"
+          >
+            {importing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+            Importo CSV
+          </Button>
+          <Button
+            size="sm"
+            className="group"
             onClick={() => {
               setEditCode(null);
               setShowForm(true);

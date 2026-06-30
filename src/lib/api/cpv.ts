@@ -44,4 +44,13 @@ export const cpvApi = {
     const res = await apiFetch(`/cpv-codes/${id}/`, { method: "DELETE" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   },
+
+  importCsv: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiJson<{ created: number; updated: number; skipped: number }>(
+      "/cpv-codes/import_csv/",
+      { method: "POST", body: formData },
+    );
+  },
 };
