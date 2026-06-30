@@ -54,6 +54,7 @@ export interface FormRecord {
   canSubmitToOpb?: boolean;
   canDownloadPdf?: boolean;
   canUploadAttachment?: boolean;
+  canDelete?: boolean;
 }
 
 export const STATUS_META: Record<

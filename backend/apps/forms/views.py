@@ -128,9 +128,9 @@ class FormViewSet(ViewSet):
     # ---- DELETE ----
     def destroy(self, request, pk=None):
         form = self._get_form(request.user, pk)
-        if not (request.user.is_admin or (request.user.is_ak and form.created_by == request.user)):
+        if not form.can_delete(request.user):
             return Response(
-                {"detail": "Nuk keni leje."},
+                {"detail": "Formulari i dorëzuar në OBP nuk mund të fshihet."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         public_id = form.public_id

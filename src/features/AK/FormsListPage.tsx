@@ -506,16 +506,20 @@ export function FormsListPage({ search }: { search: FormsSearch }) {
                               </Button>
                             )}
 
-                            {/* Fshi — për të gjitha */}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleDelete(f.id)}
-                              className="h-8 px-2 text-muted-foreground hover:text-destructive"
-                              title="Fshi"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {/* Fshi — vetëm para dorëzimit në OBP */}
+                            {(f.status === "draft" ||
+                              f.status === "pdf_generated" ||
+                              f.status === "signed_uploaded") && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(f.id)}
+                                className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                                title="Fshi"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>

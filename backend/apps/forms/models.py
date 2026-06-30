@@ -98,6 +98,13 @@ class Form(models.Model):
             return self.status in (self.DRAFT, self.PDF_GENERATED, self.SIGNED_UPLOADED)
         return False
 
+    def can_delete(self, user):
+        if user.is_admin:
+            return True
+        if user.is_ak and self.created_by_id == user.pk:
+            return self.status in (self.DRAFT, self.PDF_GENERATED, self.SIGNED_UPLOADED)
+        return False
+
     def can_generate_pdf(self, user):
         if user.is_ak and self.created_by_id == user.pk:
             return self.status in (self.DRAFT, self.PDF_GENERATED)

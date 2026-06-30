@@ -77,7 +77,7 @@ export function DashboardPage() {
 
   return (
     <AppShell
-      title="Mirëseerdhe sërish"
+      title="Dashboard"
       description="Menaxho aplikimet elektronike, gjenero PDF zyrtare dhe ndiq statusin e dokumenteve të firmosura."
       breadcrumbs={[{ label: "Paneli" }]}
       actions={

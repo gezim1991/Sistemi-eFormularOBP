@@ -44,6 +44,7 @@ class FormSerializer(serializers.ModelSerializer):
     canSubmitToOpb = serializers.SerializerMethodField()
     canDownloadPdf = serializers.SerializerMethodField()
     canUploadAttachment = serializers.SerializerMethodField()
+    canDelete = serializers.SerializerMethodField()
 
     class Meta:
         model = Form
@@ -62,6 +63,7 @@ class FormSerializer(serializers.ModelSerializer):
             "opbViewedAt", "opbDownloadedAt", "isNewForMe",
             "canEdit", "canGeneratePdf", "canUploadSigned",
             "canSubmitToOpb", "canDownloadPdf", "canUploadAttachment",
+            "canDelete",
         ]
 
     # ---- institutions ----
@@ -142,6 +144,10 @@ class FormSerializer(serializers.ModelSerializer):
     def get_canUploadAttachment(self, obj):
         user = self._user()
         return bool(user and obj.can_upload_attachment(user))
+
+    def get_canDelete(self, obj):
+        user = self._user()
+        return bool(user and obj.can_delete(user))
 
     # ---- attachments ----
     def get_attachments(self, obj):

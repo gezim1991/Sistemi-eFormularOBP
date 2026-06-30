@@ -71,7 +71,7 @@ function LoginPage() {
     }
   }
 
-  function quickFill(role: "aplikues" | "opb") {
+  function quickFill(role: "AK" | "opb") {
     const acc = TEST_ACCOUNTS.find((a) => a.role === role)!;
     setEmail(acc.email);
     setPassword(acc.password);
