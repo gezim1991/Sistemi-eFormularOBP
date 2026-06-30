@@ -11,6 +11,7 @@ urlpatterns = [
     path("api/forms/", include("apps.forms.urls")),
     path("api/audit/", include("apps.audit.urls")),
     path("api/notifications/", include("apps.notifications.urls")),
+    path("api/cpv-codes/", include("apps.cpv.urls")),
 ]
 
 if settings.DEBUG:

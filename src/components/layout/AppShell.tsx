@@ -18,6 +18,7 @@ import {
   UserPlus,
   Activity,
   PlayCircle,
+  Tags,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-store";
@@ -76,6 +77,7 @@ const baseNavAdmin: NavItem[] = [
   { to: "/admin", label: "Paneli Admin", icon: ShieldAlert, exact: true },
   { to: "/admin/users", label: "Përdoruesit", icon: UserPlus, exact: true },
   { to: "/admin/institutions", label: "Institucione", icon: Building2, exact: true },
+  { to: "/admin/cpv-codes", label: "Kodet CPV", icon: Tags, exact: true },
   { to: "/admin/system", label: "Sistemi & Storage", icon: Activity, exact: true },
 ];
 

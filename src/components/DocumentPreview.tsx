@@ -53,10 +53,10 @@ function Page({
       <div className="absolute inset-x-10 bottom-6 sm:inset-x-16">
         <div className="border-t border-foreground/20 pt-2 text-center transition-colors duration-200 group-hover/page:border-gold/50">
           <p
-            className="italic text-foreground/80 transition-colors duration-200 group-hover/page:text-navy"
+            className="mx-auto max-w-full whitespace-normal break-words italic text-foreground/80 transition-colors duration-200 group-hover/page:text-navy"
             style={{ fontFamily: '"Times New Roman", Times, serif', fontSize: "10pt" }}
           >
-            {adresa || "—"}
+            {adresa ? `Adresa: ${adresa}` : "—"}
           </p>
           <div className="mt-1 text-[10px] text-muted-foreground">
             Faqe {index} / {total}

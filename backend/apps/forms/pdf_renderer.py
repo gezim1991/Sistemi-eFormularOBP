@@ -63,15 +63,16 @@ class PdfLayout:
             y_line = A4_H - MB - 8
             page.draw_line((ML, y_line), (A4_W - MR, y_line), color=C_BLACK, width=0.35)
             if self.adresa:
-                lines = wrap_text(self.adresa, F_ITALIC, 7.5, CONTENT_W)
-                if lines:
-                    page.insert_text(
-                        (ML, y_line + 12),
-                        lines[0],
-                        fontname=F_ITALIC,
-                        fontsize=7.5,
-                        color=C_GRAY,
-                    )
+                footer_text = f"Adresa: {self.adresa}"
+                rect = fitz.Rect(ML, y_line + 8, A4_W - MR, y_line + 30)
+                page.insert_textbox(
+                    rect,
+                    footer_text,
+                    fontname=F_ITALIC,
+                    fontsize=7.5,
+                    color=C_GRAY,
+                    align=fitz.TEXT_ALIGN_CENTER,
+                )
 
 
 def render_pdf(doc: dict) -> bytes:

@@ -25,6 +25,7 @@ import { Route as DocPrintIdRouteImport } from './routes/doc-print.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSystemRouteImport } from './routes/admin.system'
 import { Route as AdminInstitutionsRouteImport } from './routes/admin.institutions'
+import { Route as AdminCpvCodesRouteImport } from './routes/admin.cpv-codes'
 
 const OpbRoute = OpbRouteImport.update({
   id: '/opb',
@@ -106,6 +107,11 @@ const AdminInstitutionsRoute = AdminInstitutionsRouteImport.update({
   path: '/institutions',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCpvCodesRoute = AdminCpvCodesRouteImport.update({
+  id: '/cpv-codes',
+  path: '/cpv-codes',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/opb': typeof OpbRoute
+  '/admin/cpv-codes': typeof AdminCpvCodesRoute
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/opb': typeof OpbRoute
+  '/admin/cpv-codes': typeof AdminCpvCodesRoute
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/opb': typeof OpbRoute
+  '/admin/cpv-codes': typeof AdminCpvCodesRoute
   '/admin/institutions': typeof AdminInstitutionsRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/notifications'
     | '/opb'
+    | '/admin/cpv-codes'
     | '/admin/institutions'
     | '/admin/system'
     | '/admin/users'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/notifications'
     | '/opb'
+    | '/admin/cpv-codes'
     | '/admin/institutions'
     | '/admin/system'
     | '/admin/users'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/notifications'
     | '/opb'
+    | '/admin/cpv-codes'
     | '/admin/institutions'
     | '/admin/system'
     | '/admin/users'
@@ -346,10 +358,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInstitutionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/cpv-codes': {
+      id: '/admin/cpv-codes'
+      path: '/cpv-codes'
+      fullPath: '/admin/cpv-codes'
+      preLoaderRoute: typeof AdminCpvCodesRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminCpvCodesRoute: typeof AdminCpvCodesRoute
   AdminInstitutionsRoute: typeof AdminInstitutionsRoute
   AdminSystemRoute: typeof AdminSystemRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -357,6 +377,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCpvCodesRoute: AdminCpvCodesRoute,
   AdminInstitutionsRoute: AdminInstitutionsRoute,
   AdminSystemRoute: AdminSystemRoute,
   AdminUsersRoute: AdminUsersRoute,

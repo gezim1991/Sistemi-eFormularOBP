@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useFormulare } from "@/lib/formulare-store";
 import { useAuth } from "@/lib/auth-store";
 import { formsApi } from "@/lib/api/forms";
+import { cpvApi } from "@/lib/api/cpv";
 import type { FormularDocumentData } from "@/lib/mock-data";
 import { Btn } from "@/components/btn";
 import { AppShell } from "@/components/layout/AppShell";
@@ -151,43 +152,6 @@ cc) cmimet nderkombetar te shpallura publikisht.
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 type CpvOption = { label: string; value: string; description: string };
-
-function parseCsvLine(line: string): string[] {
-  const cells: string[] = [];
-  let cell = "";
-  let quoted = false;
-  for (let i = 0; i < line.length; i += 1) {
-    const ch = line[i];
-    const next = line[i + 1];
-    if (ch === '"' && quoted && next === '"') {
-      cell += '"';
-      i += 1;
-    } else if (ch === '"') quoted = !quoted;
-    else if (ch === "," && !quoted) {
-      cells.push(cell.trim());
-      cell = "";
-    } else cell += ch;
-  }
-  cells.push(cell.trim());
-  return cells;
-}
-
-function parseCpvCsv(csv: string): CpvOption[] {
-  return csv
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .slice(1)
-    .map((line) => {
-      const cells = parseCsvLine(line);
-      const code = cells.at(-1)?.trim() ?? "";
-      const name = cells.at(-2)?.trim() ?? "";
-      const group = cells.slice(0, -2).join(", ").trim();
-      if (!name || !code) return null;
-      return { label: name, value: code, description: group ? `${code} · ${group}` : code };
-    })
-    .filter((x): x is CpvOption => Boolean(x));
-}
 
 const parseNum = (v: string | undefined): number => {
   if (!v) return 0;
@@ -380,9 +344,17 @@ export function FormularCreatePage({ editId }: { editId?: string }) {
   };
 
   useEffect(() => {
-    fetch("/cpv-codes.csv")
-      .then((r) => (r.ok ? r.text() : ""))
-      .then((csv) => setCpvOptions(csv ? parseCpvCsv(csv) : []))
+    cpvApi
+      .all()
+      .then((codes) =>
+        setCpvOptions(
+          codes.map((c) => ({
+            label: c.name,
+            value: c.code,
+            description: c.group ? `${c.code} · ${c.group}` : c.code,
+          })),
+        ),
+      )
       .catch(() => setCpvOptions([]));
   }, []);
 
@@ -1173,13 +1145,19 @@ function Page({
       )}
       <div className="flex-1">{children}</div>
       <div className="mt-10 border-t border-foreground/20 pt-2 text-center">
+        <span
+          className="font-serif text-[10pt] italic text-foreground/80"
+          aria-hidden="true"
+        >
+          Adresa:
+        </span>
         <input
           type="text"
           value={address}
           onChange={(e) => onAddressChange(e.target.value)}
           placeholder="Adresa e autoritetit / entit kontraktor"
           className={
-            "w-full rounded-sm px-2 py-0.5 text-center italic outline-none transition-all duration-200 focus:ring-2 focus:ring-yellow-300 placeholder:italic placeholder:text-navy/60 " +
+            "ml-1 inline-block max-w-[calc(100%-4rem)] rounded-sm px-2 py-0.5 text-center italic outline-none transition-all duration-200 focus:ring-2 focus:ring-yellow-300 placeholder:italic placeholder:text-navy/60 " +
             (address.trim()
               ? "bg-transparent text-foreground/80 hover:bg-yellow-50 focus:bg-yellow-100/80 focus:not-italic"
               : "animate-pulse border border-yellow-400/70 bg-yellow-100/80 text-navy")
