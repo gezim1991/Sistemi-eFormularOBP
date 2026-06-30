@@ -64,7 +64,16 @@ services:
     networks:
       - eformular
 
+  # One-off use: docker compose run --rm certbot certonly --webroot ...
   certbot:
+    image: certbot/certbot
+    restart: "no"
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+
+  # Renewal daemon — runs every 12h in the background
+  certbot-renew:
     image: certbot/certbot
     restart: unless-stopped
     volumes:
